@@ -5,7 +5,7 @@
 
 #define ARRAY_SIZE 32768
 
-static inline void sort_array(sorted_array_node_t *head, int size);
+static inline void sort_array(sorted_array_context_t *ctx);
 static inline int binary_search(sorted_array_node_t *head, int start, int end, unsigned int data);
 
 /**
@@ -33,7 +33,6 @@ init_array(sorted_array_node_t **node)
 inline void
 init_sorted_array(sorted_array_context_t *ctx)
 {
-	//TODO implement
 	LOG_MESSAGE("=== open init sorted array");
 
 	init_array(&ctx->saddr);
@@ -80,11 +79,7 @@ insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
 
 	if(ctx->last_idx >= ARRAY_SIZE)
 	{
-		//XXX where should we locate sort array?
-		sort_array(ctx->saddr, ctx->last_idx-1);
-		sort_array(ctx->daddr, ctx->last_idx-1);
-		sort_array(ctx->sport, ctx->last_idx-1);
-		sort_array(ctx->dport, ctx->last_idx-1);
+		sort_array(ctx);
 		return 1;
 	}
 
@@ -125,7 +120,7 @@ binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
 inline void
 search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data)
 {
-	//TODO type
+	//TODO change function to use ENUM field marker
 	int res = binary_search(ctx->saddr, 0, ARRAY_SIZE-1, data);
 	
 	if (res == -1) {
@@ -196,10 +191,13 @@ quick_sort(sorted_array_node_t *head, int l, int r)
  * @param ctx [description]
  */
 static inline void
-sort_array(sorted_array_node_t *head, int size)
+sort_array(sorted_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start sorting");
-	quick_sort(head, 0, size);
+	quick_sort(ctx->saddr, 0, ctx->last_idx-1);
+	quick_sort(ctx->daddr, 0, ctx->last_idx-1);
+	quick_sort(ctx->sport, 0, ctx->last_idx-1);
+	quick_sort(ctx->dport, 0, ctx->last_idx-1);
 	LOG_MESSAGE("=== close sorting");
 }
 
