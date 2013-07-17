@@ -28,6 +28,7 @@ sorted_array_main(sorted_array_context_t *ctx)
 	}
 
 	write_sorted_array(ctx);
+	search_from_sorted_array(ctx, rand());
 }
 
 /**

@@ -6,21 +6,8 @@
 
 #define ARRAY_SIZE 32768
 
-
-/**
- * swap node a and b
- * @param a [description]
- * @param b [description]
- */
-static inline void
-swap(sorted_array_node_t *a, sorted_array_node_t *b)
-{
-	sorted_array_node_t temp;
-	temp = *a;
-	*a    = *b;
-	*b    = temp;
-}
 static void sort_array(sorted_array_context_t *ctx);
+static int binary_search(sorted_array_node_t *head, int start, int end, unsigned int data);
 
 /**
  * init context for sorted array index
@@ -69,6 +56,24 @@ insert_into_sorted_array(sorted_array_context_t *ctx, unsigned int data)
 	return 0;
 }
 
+static int
+binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
+{
+	if (start > end)
+		return -1;
+
+	int mid = (start + end) / 2;
+	unsigned int mid_val = (&head[mid])->value;
+
+	if (mid_val > data) {
+		return binary_search(head, start, mid-1, data);
+	} else if (mid_val < data) {
+		return binary_search(head, mid+1, end, data);
+	}
+
+	return mid;
+}
+
 /**
  * search data from sorted array
  * @param ctx  [description]
@@ -77,7 +82,26 @@ insert_into_sorted_array(sorted_array_context_t *ctx, unsigned int data)
 void
 search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data)
 {
-	//TODO implement
+	int res = binary_search(ctx->head, 0, ARRAY_SIZE-1, data);
+	
+	if (res == -1) {
+		printf("%u do not exist in the array\n", data);
+		return;		
+	}
+
+	printf("%u is exist in array idx: %d\n", data, res);
+}
+
+/**
+ * swap node a and b
+ * @param a [description]
+ * @param b [description]
+ */
+static inline void
+swap(sorted_array_node_t *a, sorted_array_node_t *b)
+{
+	sorted_array_node_t temp;
+	temp = *a; *a = *b;	*b = temp;
 }
 
 /**
@@ -162,7 +186,6 @@ void
 write_sorted_array(sorted_array_context_t *ctx)
 {
 	//TODO implement
-	//print_sorted_array(ctx);
 }
 
 /**
