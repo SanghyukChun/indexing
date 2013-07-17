@@ -9,11 +9,11 @@ static inline void sort_array(sorted_array_context_t *ctx);
 static inline int binary_search(sorted_array_node_t *head, int start, int end, unsigned int data);
 
 /**
- * init array
- * @param node [description]
+ * allocate memory to given head node
+ * @param head node structure which indicate first of index array
  */
 static inline void
-init_array(sorted_array_node_t **node)
+init_array(sorted_array_node_t **head)
 {
 	sorted_array_node_t *p = (sorted_array_node_t *)calloc(ARRAY_SIZE, sizeof(sorted_array_node_t));
 
@@ -23,12 +23,13 @@ init_array(sorted_array_node_t **node)
 		exit(-1);
 	}
 
-	*node = p;
+	*head = p;
 }
 
 /**
  * init context for sorted array index
- * @param ctx  [description]
+ * init array for each index field (source ip/port, destination ip/port)
+ * @param ctx  context
  */
 inline void
 init_sorted_array(sorted_array_context_t *ctx)
@@ -46,7 +47,9 @@ init_sorted_array(sorted_array_context_t *ctx)
 }
 
 /**
- * insert index to given array
+ * insert data to given array structure
+ * assign values to unused node
+ * data and file information (fileID and offset) of metadata is assigned to node
  * @param ctx  [description]
  * @param head [description]
  * @param data [description]
@@ -62,9 +65,9 @@ insert_index(sorted_array_context_t *ctx, sorted_array_node_t *head, unsigned in
 }
 
 /**
- * insert data into sorted array using double linked list
+ * insert metadata into sorted array using double linked list
  * @param ctx  [description]
- * @param data [description]
+ * @param meta [description]
  * @return     [description]
  */
 inline int
@@ -80,7 +83,9 @@ insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
 	if(ctx->last_idx >= ARRAY_SIZE)
 	{
 		sort_array(ctx);
-		return 1;
+		write_sorted_array(ctx);
+		clean_index_array(ctx);
+		return 0;
 	}
 
 	return 0;
@@ -232,15 +237,50 @@ write_sorted_array(sorted_array_context_t *ctx)
 }
 
 /**
+ * clean given array
+ * @param head [description]
+ */
+inline static void 
+clean_array(sorted_array_node_t *head)
+{
+	int i;
+	sorted_array_node_t *node;
+	for (i = 0; i < ARRAY_SIZE; i++)
+	{
+		node = &head[i];
+		node->fileID = 0;
+		node->offset = 0;
+		node->value = 0;
+	}
+}
+
+/**
+ * clean whole arrayes to reuse
+ * @param ctx context
+ */
+inline static void 
+clean_index_array(sorted_array_context_t *ctx)
+{
+	LOG_MESSAGE("=== start clean");
+	clean_array(ctx->saddr);
+	clean_array(ctx->daddr);
+	clean_array(ctx->sport);
+	clean_array(ctx->dport);
+	LOG_MESSAGE("=== start clean");
+}
+
+/**
  * free sorted array
  * @param ctx [description]
  */
 inline void
 free_sorted_array(sorted_array_context_t *ctx)
 {
+	LOG_MESSAGE("=== start free");
 	free(ctx->saddr);
 	free(ctx->daddr);
 	free(ctx->sport);
 	free(ctx->dport);
 	free(ctx);
+	LOG_MESSAGE("=== start free");
 }
