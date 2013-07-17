@@ -1,10 +1,10 @@
-typedef struct array_node
+typedef struct sorted_array_node
 {
 	unsigned int file_offset; /* currently unused */
 	unsigned int value;
-	struct array_node *prev;
-	struct array_node *next;
-} array_node_t;
+	struct sorted_array_node *prev;
+	struct sorted_array_node *next;
+} sorted_array_node_t;
 
 typedef struct sorted_array_context
 {

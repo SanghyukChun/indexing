@@ -74,12 +74,13 @@ void avl_tree_main(avl_tree_context_t *ctx)
 	init_avl_tree(ctx);
 
 	bool done = false;
-	unsigned int data;
+	unsigned int data = 0;
 
 	while(!done) {
 		//TODO generate rand data iteratively
-		insert_into_avl_tree(ctx, data);
-		done = true;
+		insert_into_avl_tree(ctx, data++);
+		if (data > 100)
+			done = true;
 	}
 
 	write_avl_tree(ctx);
@@ -119,17 +120,17 @@ int main(int argc, char *argv[])
 
 	if (strcmp(argv[1], "a") == 0)
 	{
-		sorted_array_context_t ctx;
-		sorted_array_main(&ctx);
-		sorted_array_exit(&ctx);
+		sorted_array_context_t *ctx = (sorted_array_context_t *)malloc(sizeof(sorted_array_context_t));
+		sorted_array_main(ctx);
+		sorted_array_exit(ctx);
 	} else if (strcmp(argv[1], "b") == 0) {
-		bloom_filter_context_t ctx;
-		bloom_filter_main(&ctx);
-		bloom_filter_exit(&ctx);
+		bloom_filter_context_t *ctx = (bloom_filter_context_t *)malloc(sizeof(bloom_filter_context_t));
+		bloom_filter_main(ctx);
+		bloom_filter_exit(ctx);
 	} else if (strcmp(argv[1], "t") == 0) {
-		avl_tree_context_t ctx;
-		avl_tree_main(&ctx);
-		avl_tree_exit(&ctx);
+		avl_tree_context_t *ctx = (avl_tree_context_t *)malloc(sizeof(avl_tree_context_t));
+		avl_tree_main(ctx);
+		avl_tree_exit(ctx);
 	} else {
 		fprintf(stderr, "undefined index structure %s\n", argv[1]);
 		usage(argv[0]);
