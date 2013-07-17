@@ -5,14 +5,14 @@
 
 #define ARRAY_SIZE 32768
 
-static void sort_array(sorted_array_node_t *head, int size);
-static int binary_search(sorted_array_node_t *head, int start, int end, unsigned int data);
+static inline void sort_array(sorted_array_node_t *head, int size);
+static inline int binary_search(sorted_array_node_t *head, int start, int end, unsigned int data);
 
 /**
  * init array
  * @param node [description]
  */
-static void
+static inline void
 init_array(sorted_array_node_t **node)
 {
 	sorted_array_node_t *p = (sorted_array_node_t *)calloc(ARRAY_SIZE, sizeof(sorted_array_node_t));
@@ -30,7 +30,7 @@ init_array(sorted_array_node_t **node)
  * init context for sorted array index
  * @param ctx  [description]
  */
-void
+inline void
 init_sorted_array(sorted_array_context_t *ctx)
 {
 	//TODO implement
@@ -53,7 +53,7 @@ init_sorted_array(sorted_array_context_t *ctx)
  * @param data [description]
  * @param meta [description]
  */
-static void
+static inline void
 insert_index(sorted_array_context_t *ctx, sorted_array_node_t *head, unsigned int data, FlowMeta *meta)
 {
 	sorted_array_node_t *node = &head[ctx->last_idx];
@@ -68,7 +68,7 @@ insert_index(sorted_array_context_t *ctx, sorted_array_node_t *head, unsigned in
  * @param data [description]
  * @return     [description]
  */
-int
+inline int
 insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
 {
 	insert_index(ctx, ctx->saddr, meta->flowinfo.saddr, meta);
@@ -99,7 +99,7 @@ insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
  * @param  data  [description]
  * @return       [description]
  */
-static int
+static inline int
 binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
 {
 	if (start > end)
@@ -122,7 +122,7 @@ binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
  * @param ctx  [description]
  * @param data [description]
  */
-void
+inline void
 search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data)
 {
 	//TODO type
@@ -155,7 +155,7 @@ swap(sorted_array_node_t *a, sorted_array_node_t *b)
  * @param  r    [description]
  * @return      [description]
  */
-static int
+static inline int
 partition(sorted_array_node_t *head, int l, int r)
 {
 	unsigned int pivot, i, j;
@@ -179,7 +179,7 @@ partition(sorted_array_node_t *head, int l, int r)
  * @param l    [description]
  * @param r    [description]
  */
-static void
+static inline void
 quick_sort(sorted_array_node_t *head, int l, int r)
 {
 	int j;
@@ -195,7 +195,7 @@ quick_sort(sorted_array_node_t *head, int l, int r)
  * sort array by quick sort function
  * @param ctx [description]
  */
-static void
+static inline void
 sort_array(sorted_array_node_t *head, int size)
 {
 	LOG_MESSAGE("=== start sorting");
@@ -207,7 +207,7 @@ sort_array(sorted_array_node_t *head, int size)
  * print array
  * @param ctx [description]
  */
-void
+inline void
 print_sorted_array(sorted_array_context_t *ctx)
 {
 	/**
@@ -227,7 +227,7 @@ print_sorted_array(sorted_array_context_t *ctx)
  * after write operation end, it clean whole array to reuse
  * @param ctx [description]
  */
-void
+inline void
 write_sorted_array(sorted_array_context_t *ctx)
 {
 	//TODO implement
@@ -237,7 +237,7 @@ write_sorted_array(sorted_array_context_t *ctx)
  * free sorted array
  * @param ctx [description]
  */
-void
+inline void
 free_sorted_array(sorted_array_context_t *ctx)
 {
 	free(ctx->saddr);
