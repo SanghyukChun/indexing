@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 
 #include "sorted_array.h"
 #include "avl_tree.h"
@@ -16,12 +17,15 @@ void sorted_array_main(sorted_array_context_t *ctx)
 	init_sorted_array(ctx);
 
 	bool done = false;
-	unsigned int data;
+	unsigned int data = 0;
+
+	srand(time(NULL));
 
 	while(!done) {
 		//TODO generate rand data iteratively
-		insert_into_sorted_array(ctx, data);
-		done = true;
+		insert_into_sorted_array(ctx, rand());
+		if (data++ > 100)
+			done = true;
 	}
 
 	write_sorted_array(ctx);
@@ -112,6 +116,14 @@ void usage(char* argv0)
  */
 int main(int argc, char *argv[])
 {
+	if (argc == 1)
+	{
+		sorted_array_context_t *ctx = (sorted_array_context_t *)malloc(sizeof(sorted_array_context_t));
+		sorted_array_main(ctx);
+		sorted_array_exit(ctx);
+		return;
+	}
+
 	if (argc != 2)
 	{
 		usage(argv[0]);
