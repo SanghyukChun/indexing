@@ -6,6 +6,7 @@
 #define ARRAY_SIZE 32768
 
 static inline void sort_array(sorted_array_context_t *ctx);
+inline static void clean_index_array(sorted_array_context_t *ctx);
 static inline int binary_search(sorted_array_node_t *head, int start, int end, unsigned int data);
 
 /**
@@ -50,10 +51,10 @@ init_sorted_array(sorted_array_context_t *ctx)
  * insert data to given array structure
  * assign values to unused node
  * data and file information (fileID and offset) of metadata is assigned to node
- * @param ctx  [description]
- * @param head [description]
- * @param data [description]
- * @param meta [description]
+ * @param ctx  context
+ * @param head node structure which indicate first of index array
+ * @param data index data such as ip and port
+ * @param meta required to assign fileID and offset to node
  */
 static inline void
 insert_index(sorted_array_context_t *ctx, sorted_array_node_t *head, unsigned int data, FlowMeta *meta)
@@ -66,9 +67,9 @@ insert_index(sorted_array_context_t *ctx, sorted_array_node_t *head, unsigned in
 
 /**
  * insert metadata into sorted array using double linked list
- * @param ctx  [description]
- * @param meta [description]
- * @return     [description]
+ * @param ctx  context
+ * @param meta flow metadata to indexing
+ * @return     it always return 0 except error occured
  */
 inline int
 insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
@@ -92,12 +93,13 @@ insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
 }
 
 /**
- * binary search
- * @param  head  [description]
- * @param  start [description]
- * @param  end   [description]
- * @param  data  [description]
- * @return       [description]
+ * simple binary search which always compare middle of given start and end index to given data
+ * @param  head  node structure which indicate first of index array
+ * @param  start first index to look up
+ * @param  end   last index to look up
+ * @param  data  data to find
+ * @return       return 0 if there is no given data
+ *               if there is, it return index of given data
  */
 static inline int
 binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
@@ -118,9 +120,9 @@ binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
 }
 
 /**
- * search data from sorted array
- * @param ctx  [description]
- * @param data [description]
+ * search data from array
+ * @param ctx  context
+ * @param data data to find
  */
 inline void
 search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data)
@@ -149,8 +151,8 @@ swap(sorted_array_node_t *a, sorted_array_node_t *b)
 }
 
 /**
- * sort parition
- * @param  head [description]
+ * parition sorting algorithm for quick sort
+ * @param  head node structure which indicate first of index array
  * @param  l    [description]
  * @param  r    [description]
  * @return      [description]
@@ -175,7 +177,7 @@ partition(sorted_array_node_t *head, int l, int r)
 
 /**
  * do quick sort
- * @param head [description]
+ * @param head node structure which indicate first of index array
  * @param l    [description]
  * @param r    [description]
  */
@@ -193,22 +195,24 @@ quick_sort(sorted_array_node_t *head, int l, int r)
 
 /**
  * sort array by quick sort function
- * @param ctx [description]
+ * @param ctx context
  */
 static inline void
 sort_array(sorted_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start sorting");
+
 	quick_sort(ctx->saddr, 0, ctx->last_idx-1);
 	quick_sort(ctx->daddr, 0, ctx->last_idx-1);
 	quick_sort(ctx->sport, 0, ctx->last_idx-1);
 	quick_sort(ctx->dport, 0, ctx->last_idx-1);
+	
 	LOG_MESSAGE("=== close sorting");
 }
 
 /**
  * print array
- * @param ctx [description]
+ * @param ctx context
  */
 inline void
 print_sorted_array(sorted_array_context_t *ctx)
@@ -237,8 +241,8 @@ write_sorted_array(sorted_array_context_t *ctx)
 }
 
 /**
- * clean given array
- * @param head [description]
+ * clean given array to reuse
+ * @param head node structure which indicate first of index array
  */
 inline static void 
 clean_array(sorted_array_node_t *head)
@@ -255,32 +259,38 @@ clean_array(sorted_array_node_t *head)
 }
 
 /**
- * clean whole arrayes to reuse
+ * clean whole arrays to reuse
  * @param ctx context
  */
 inline static void 
 clean_index_array(sorted_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start clean");
+
 	clean_array(ctx->saddr);
 	clean_array(ctx->daddr);
 	clean_array(ctx->sport);
 	clean_array(ctx->dport);
+
+	ctx->last_idx = 0;
+
 	LOG_MESSAGE("=== start clean");
 }
 
 /**
  * free sorted array
- * @param ctx [description]
+ * @param ctx context
  */
 inline void
 free_sorted_array(sorted_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start free");
+
 	free(ctx->saddr);
 	free(ctx->daddr);
 	free(ctx->sport);
 	free(ctx->dport);
 	free(ctx);
+
 	LOG_MESSAGE("=== start free");
 }
