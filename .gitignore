@@ -26,3 +26,6 @@
 *.out
 *.app
 index
+
+#sublime sftp config
+sftp-config.json
