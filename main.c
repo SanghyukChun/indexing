@@ -59,7 +59,7 @@ bloom_filter_main(bloom_filter_context_t *ctx)
 	init_bloom_filter(ctx);
 
 	bool done = false;
-	unsigned int data;
+	unsigned int data = 0;
 
 	while(!done) {
 		//TODO generate rand data iteratively
@@ -136,7 +136,7 @@ main(int argc, char *argv[])
 		sorted_array_context_t *ctx = (sorted_array_context_t *)malloc(sizeof(sorted_array_context_t));
 		sorted_array_main(ctx);
 		sorted_array_exit(ctx);
-		return;
+		return 0;
 	}
 
 	if (argc != 2)

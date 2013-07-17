@@ -252,6 +252,8 @@ search(avl_tree_node_t *p, unsigned int data)
 
 	if (data > p->value)
 		return search(p->right, data);
+
+	return NULL;
 }
 
 /**
