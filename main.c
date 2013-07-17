@@ -21,9 +21,17 @@ sorted_array_main(sorted_array_context_t *ctx)
 
 	srand(time(NULL));
 
+	FlowMeta *meta = (FlowMeta *)malloc(sizeof(FlowMeta));
+	FlowInfo *info = (FlowInfo *)malloc(sizeof(FlowInfo));
+	info->saddr = rand();
+	info->daddr = rand();
+	info->sport = rand();
+	info->dport = rand();
+	meta->flowinfo = *info;
+
 	while(!done) {
 		//TODO generate rand data iteratively
-		if (insert_into_sorted_array(ctx, rand()))
+		if (insert_into_sorted_array(ctx, meta))
 			done = true;
 	}
 

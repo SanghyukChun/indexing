@@ -2,12 +2,29 @@
 #include <stdlib.h>
 
 #include "sorted_array.h"
-#include "util.h"
 
 #define ARRAY_SIZE 32768
 
-static void sort_array(sorted_array_context_t *ctx);
+static void sort_array(sorted_array_node_t *head, int size);
 static int binary_search(sorted_array_node_t *head, int start, int end, unsigned int data);
+
+/**
+ * init array
+ * @param node [description]
+ */
+static void
+init_array(sorted_array_node_t **node)
+{
+	sorted_array_node_t *p = (sorted_array_node_t *)calloc(ARRAY_SIZE, sizeof(sorted_array_node_t));
+
+	if (p == NULL)
+	{
+		fprintf(stderr, "fail to initialize array\n");
+		exit(-1);
+	}
+
+	*node = p;
+}
 
 /**
  * init context for sorted array index
@@ -18,44 +35,70 @@ init_sorted_array(sorted_array_context_t *ctx)
 {
 	//TODO implement
 	LOG_MESSAGE("=== open init sorted array");
-	sorted_array_node_t *p = (sorted_array_node_t *)calloc(ARRAY_SIZE, sizeof(sorted_array_node_t));
 
-	if (p == NULL)
-	{
-		fprintf(stderr, "fail to initialize array\n");
-		exit(-1);
-	}
+	init_array(&ctx->saddr);
+	init_array(&ctx->daddr);
+	init_array(&ctx->sport);
+	init_array(&ctx->dport);
 
-	ctx->head = p;
 	ctx->last_idx = 0;
 
 	LOG_MESSAGE("=== close init sorted array");
 }
 
 /**
+ * insert index to given array
+ * @param ctx  [description]
+ * @param head [description]
+ * @param data [description]
+ * @param meta [description]
+ */
+static void
+insert_index(sorted_array_context_t *ctx, sorted_array_node_t *head, unsigned int data, FlowMeta *meta)
+{
+	sorted_array_node_t *node = &head[ctx->last_idx];
+	node->value = data;
+	node->fileID = meta->fileID;
+	node->offset = meta->offset;
+}
+
+/**
  * insert data into sorted array using double linked list
  * @param ctx  [description]
  * @param data [description]
- * @return      [description]
+ * @return     [description]
  */
 int
-insert_into_sorted_array(sorted_array_context_t *ctx, unsigned int data)
+insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
 {
-	sorted_array_node_t *node = &ctx->head[ctx->last_idx];
-	node->value = data;
-	//node->file_offset = offset;
+	insert_index(ctx, ctx->saddr, meta->flowinfo.saddr, meta);
+	insert_index(ctx, ctx->daddr, meta->flowinfo.daddr, meta);
+	insert_index(ctx, ctx->sport, meta->flowinfo.sport, meta);
+	insert_index(ctx, ctx->dport, meta->flowinfo.dport, meta);
+
 	ctx->last_idx = ctx->last_idx+1;
 
 	if(ctx->last_idx >= ARRAY_SIZE)
 	{
 		//XXX where should we locate sort array?
-		sort_array(ctx);
+		sort_array(ctx->saddr, ctx->last_idx-1);
+		sort_array(ctx->daddr, ctx->last_idx-1);
+		sort_array(ctx->sport, ctx->last_idx-1);
+		sort_array(ctx->dport, ctx->last_idx-1);
 		return 1;
 	}
 
 	return 0;
 }
 
+/**
+ * binary search
+ * @param  head  [description]
+ * @param  start [description]
+ * @param  end   [description]
+ * @param  data  [description]
+ * @return       [description]
+ */
 static int
 binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
 {
@@ -82,7 +125,8 @@ binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
 void
 search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data)
 {
-	int res = binary_search(ctx->head, 0, ARRAY_SIZE-1, data);
+	//TODO type
+	int res = binary_search(ctx->saddr, 0, ARRAY_SIZE-1, data);
 	
 	if (res == -1) {
 		printf("%u do not exist in the array\n", data);
@@ -152,11 +196,10 @@ quick_sort(sorted_array_node_t *head, int l, int r)
  * @param ctx [description]
  */
 static void
-sort_array(sorted_array_context_t *ctx)
+sort_array(sorted_array_node_t *head, int size)
 {
 	LOG_MESSAGE("=== start sorting");
-	sorted_array_node_t *head = ctx->head;
-	quick_sort(head, 0, ctx->last_idx-1);
+	quick_sort(head, 0, size);
 	LOG_MESSAGE("=== close sorting");
 }
 
@@ -167,6 +210,7 @@ sort_array(sorted_array_context_t *ctx)
 void
 print_sorted_array(sorted_array_context_t *ctx)
 {
+	/**
 	sorted_array_node_t *head = ctx->head;
 	int i;
 	for (i = 0; i <ARRAY_SIZE; i++)
@@ -175,6 +219,7 @@ print_sorted_array(sorted_array_context_t *ctx)
 		if (node->value != 0)
 			printf("%d\n", node->value);
 	}
+	**/
 }
 
 /**
@@ -195,6 +240,9 @@ write_sorted_array(sorted_array_context_t *ctx)
 void
 free_sorted_array(sorted_array_context_t *ctx)
 {
-	free(ctx->head);
+	free(ctx->saddr);
+	free(ctx->daddr);
+	free(ctx->sport);
+	free(ctx->dport);
 	free(ctx);
 }
