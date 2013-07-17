@@ -12,7 +12,8 @@
  * main for sorted array index structure
  * @param ctx [description]
  */
-void sorted_array_main(sorted_array_context_t *ctx)
+void
+sorted_array_main(sorted_array_context_t *ctx)
 {
 	init_sorted_array(ctx);
 
@@ -35,7 +36,8 @@ void sorted_array_main(sorted_array_context_t *ctx)
  * exit for sorted array index structure
  * @param ctx [description]
  */
-void sorted_array_exit(sorted_array_context_t *ctx)
+void
+sorted_array_exit(sorted_array_context_t *ctx)
 {
 	free_sorted_array(ctx);	
 }
@@ -44,7 +46,8 @@ void sorted_array_exit(sorted_array_context_t *ctx)
  * main for bloom filter index structure
  * @param ctx [description]
  */
-void bloom_filter_main(bloom_filter_context_t *ctx)
+void
+bloom_filter_main(bloom_filter_context_t *ctx)
 {
 	init_bloom_filter(ctx);
 
@@ -64,7 +67,8 @@ void bloom_filter_main(bloom_filter_context_t *ctx)
  * exit for bloom filter index structure
  * @param ctx [description]
  */
-void bloom_filter_exit(bloom_filter_context_t *ctx)
+void
+bloom_filter_exit(bloom_filter_context_t *ctx)
 {
 	free_bloom_filter(ctx);
 }
@@ -73,7 +77,8 @@ void bloom_filter_exit(bloom_filter_context_t *ctx)
  * main for avl tree index structure
  * @param ctx [description]
  */
-void avl_tree_main(avl_tree_context_t *ctx)
+void
+avl_tree_main(avl_tree_context_t *ctx)
 {
 	init_avl_tree(ctx);
 
@@ -94,12 +99,14 @@ void avl_tree_main(avl_tree_context_t *ctx)
  * exit for avl tree index structure
  * @param ctx [description]
  */
-void avl_tree_exit(avl_tree_context_t *ctx)
+void
+avl_tree_exit(avl_tree_context_t *ctx)
 {
 	free_avl_tree(ctx);
 }
 
-void usage(char* argv0)
+void
+usage(char* argv0)
 {
 		fprintf(stderr, "usage: %s <index structure>\n", argv0);
 		fprintf(stderr, "           index structure options\n");
@@ -114,7 +121,8 @@ void usage(char* argv0)
  * @param  argv [description]
  * @return      [description]
  */
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	if (argc == 1)
 	{

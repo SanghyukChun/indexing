@@ -6,7 +6,8 @@
  * init context for bloom filter
  * @param ctx [description]
  */
-void init_bloom_filter(bloom_filter_context_t *ctx)
+void
+init_bloom_filter(bloom_filter_context_t *ctx)
 {
 	//TODO implement
 }
@@ -15,7 +16,8 @@ void init_bloom_filter(bloom_filter_context_t *ctx)
  * insert data into bloom filter
  * @param ctx [description]
  */
-void insert_into_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
+void
+insert_into_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
 {
 	//TODO implement
 }
@@ -24,7 +26,8 @@ void insert_into_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
  * search data from bloom filter
  * @param ctx [description]
  */
-void search_from_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
+void
+search_from_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
 {
 	//TODO implement
 }
@@ -34,7 +37,8 @@ void search_from_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
  * after write operation end, it clean whole bloom filter to reuse
  * @param ctx [description]
  */
-void write_bloom_filter(bloom_filter_context_t *ctx)
+void
+write_bloom_filter(bloom_filter_context_t *ctx)
 {
 	//TODO implement
 }
@@ -43,7 +47,8 @@ void write_bloom_filter(bloom_filter_context_t *ctx)
  * free bloom filter
  * @param ctx [description]
  */
-void free_bloom_filter(bloom_filter_context_t *ctx)
+void
+free_bloom_filter(bloom_filter_context_t *ctx)
 {
 	//TODO implement
 }

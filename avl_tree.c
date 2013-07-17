@@ -11,7 +11,8 @@
  * init context for avl tree index
  * @param ctx [description]
  */
-void init_avl_tree(avl_tree_context_t *ctx)
+void
+init_avl_tree(avl_tree_context_t *ctx)
 {
 	//TODO implement
 	LOG_MESSAGE("=== open init avl tree");
@@ -29,7 +30,8 @@ void init_avl_tree(avl_tree_context_t *ctx)
 	LOG_MESSAGE("=== close init avl tree");
 }
 
-void print_tree_loop(avl_tree_node_t *node)
+void
+print_tree_loop(avl_tree_node_t *node)
 {
 	if (node == NULL)
 		printf("NULL\t");
@@ -41,7 +43,8 @@ void print_tree_loop(avl_tree_node_t *node)
 	}
 }
 
-void print_tree(avl_tree_context_t *ctx)
+void
+print_tree(avl_tree_context_t *ctx)
 {
 	print_tree_loop(ctx->root);
 	printf("\n");
@@ -52,7 +55,8 @@ void print_tree(avl_tree_context_t *ctx)
  * @param  node [description]
  * @return      [description]
  */
-int get_height(avl_tree_node_t *node)
+int
+get_height(avl_tree_node_t *node)
 {
 	int height = 0;
 	if (node != NULL) {
@@ -69,7 +73,8 @@ int get_height(avl_tree_node_t *node)
  * @param  node [description]
  * @return      [description]
  */
-int get_diff(avl_tree_node_t *node)
+int
+get_diff(avl_tree_node_t *node)
 {
 	int left_height = get_height(node->left);
 	int right_height = get_height(node->right);
@@ -83,7 +88,8 @@ int get_diff(avl_tree_node_t *node)
  * @param  p [description]
  * @return   [description]
  */
-avl_tree_node_t* rotate_rr(avl_tree_node_t *p)
+avl_tree_node_t*
+rotate_rr(avl_tree_node_t *p)
 {
 	avl_tree_node_t *node;
 	node = p->right;
@@ -98,7 +104,8 @@ avl_tree_node_t* rotate_rr(avl_tree_node_t *p)
  * @param  p [description]
  * @return   [description]
  */
-avl_tree_node_t* rotate_ll(avl_tree_node_t *p)
+avl_tree_node_t*
+rotate_ll(avl_tree_node_t *p)
 {
 	avl_tree_node_t *node;
 	node = p->left;
@@ -113,7 +120,8 @@ avl_tree_node_t* rotate_ll(avl_tree_node_t *p)
  * @param  p [description]
  * @return   [description]
  */
-avl_tree_node_t* rotate_rl(avl_tree_node_t *p)
+avl_tree_node_t*
+rotate_rl(avl_tree_node_t *p)
 {
 	avl_tree_node_t *node;
 	node = p->right;
@@ -127,7 +135,8 @@ avl_tree_node_t* rotate_rl(avl_tree_node_t *p)
  * @param  p [description]
  * @return   [description]
  */
-avl_tree_node_t* rotate_lr(avl_tree_node_t *p)
+avl_tree_node_t*
+rotate_lr(avl_tree_node_t *p)
 {
 	avl_tree_node_t *node;
 	node = p->left;
@@ -140,7 +149,8 @@ avl_tree_node_t* rotate_lr(avl_tree_node_t *p)
  * @param  node [description]
  * @return      [description]
  */
-avl_tree_node_t* balancing(avl_tree_node_t *node)
+avl_tree_node_t*
+balancing(avl_tree_node_t *node)
 {
 	int diff = get_diff(node);
 	
@@ -167,7 +177,8 @@ avl_tree_node_t* balancing(avl_tree_node_t *node)
  * @param p    [description]
  * @param node [description]
  */
-avl_tree_node_t* insert(avl_tree_node_t *p, avl_tree_node_t *node)
+avl_tree_node_t*
+insert(avl_tree_node_t *p, avl_tree_node_t *node)
 {
 	if (p == NULL)
 	{
@@ -195,7 +206,8 @@ avl_tree_node_t* insert(avl_tree_node_t *p, avl_tree_node_t *node)
  * @param ctx  [description]
  * @param data [description]
  */
-void insert_into_avl_tree(avl_tree_context_t *ctx, unsigned int data)
+void
+insert_into_avl_tree(avl_tree_context_t *ctx, unsigned int data)
 {
 	LOG_MESSAGE("=== open insert avl tree");
 	if (ctx->last_node == 0)
@@ -226,7 +238,8 @@ void insert_into_avl_tree(avl_tree_context_t *ctx, unsigned int data)
  * @param  data [description]
  * @return      [description]
  */
-avl_tree_node_t* search(avl_tree_node_t *p, unsigned int data)
+avl_tree_node_t*
+search(avl_tree_node_t *p, unsigned int data)
 {
 	if (p == NULL)
 		return NULL;
@@ -247,7 +260,8 @@ avl_tree_node_t* search(avl_tree_node_t *p, unsigned int data)
  * @param data [description]
  * @return      [description]
  */
-avl_tree_node_t* search_from_avl_tree(avl_tree_context_t *ctx, unsigned int data)
+avl_tree_node_t*
+search_from_avl_tree(avl_tree_context_t *ctx, unsigned int data)
 {
 	return search(ctx->root, data);
 }
@@ -257,7 +271,8 @@ avl_tree_node_t* search_from_avl_tree(avl_tree_context_t *ctx, unsigned int data
  * after write operation end, it clean whole tree to reuse
  * @param ctx [description]
  */
-void write_avl_tree(avl_tree_context_t *ctx)
+void
+write_avl_tree(avl_tree_context_t *ctx)
 {
 	//TODO implement
 }
@@ -266,7 +281,8 @@ void write_avl_tree(avl_tree_context_t *ctx)
  * free avl tree
  * @param ctx [description]
  */
-void free_avl_tree(avl_tree_context_t *ctx)
+void
+free_avl_tree(avl_tree_context_t *ctx)
 {
 	free(ctx->root);
 	free(ctx);

@@ -10,7 +10,8 @@
  * init context for sorted array index
  * @param ctx  [description]
  */
-void init_sorted_array(sorted_array_context_t *ctx)
+void
+init_sorted_array(sorted_array_context_t *ctx)
 {
 	//TODO implement
 	LOG_MESSAGE("=== open init sorted array");
@@ -33,7 +34,8 @@ void init_sorted_array(sorted_array_context_t *ctx)
  * @param ctx  [description]
  * @param data [description]
  */
-void insert_into_sorted_array(sorted_array_context_t *ctx, unsigned int data)
+void
+insert_into_sorted_array(sorted_array_context_t *ctx, unsigned int data)
 {
 	sorted_array_node_t *node = &ctx->head[ctx->last_idx];
 	node->value = data;
@@ -46,14 +48,37 @@ void insert_into_sorted_array(sorted_array_context_t *ctx, unsigned int data)
  * @param ctx  [description]
  * @param data [description]
  */
-void search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data)
+void
+search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data)
 {
 	//TODO implement
 }
 
-int partition(sorted_array_node_t *head, int l, int r)
+/**
+ * swap node a and b
+ * @param a [description]
+ * @param b [description]
+ */
+inline void
+swap(sorted_array_node_t *a, sorted_array_node_t *b)
 {
-	int pivot, i, j, t;
+	sorted_array_node_t temp;
+	temp = *a;
+	*a    = *b;
+	*b    = temp;
+}
+
+/**
+ * sort parition
+ * @param  head [description]
+ * @param  l    [description]
+ * @param  r    [description]
+ * @return      [description]
+ */
+int
+partition(sorted_array_node_t *head, int l, int r)
+{
+	unsigned int pivot, i, j;
 	pivot = (&head[l])->value;
 	i = l; j = r+1;
 
@@ -62,13 +87,20 @@ int partition(sorted_array_node_t *head, int l, int r)
 		do ++i; while( (&head[i])->value <= pivot && i <= r );
 		do --j; while( (&head[j])->value > pivot );
 		if (i >= j) break;
-		t = (&head[i])->value; (&head[i])->value = (&head[j])->value; (&head[j])->value = t;
+		swap(&head[i], &head[j]);
 	}
-	t = (&head[l])->value; (&head[l])->value = (&head[j])->value; (&head[j])->value = t;
+	swap(&head[l], &head[j]);
 	return j;
 }
 
-void quick_sort(sorted_array_node_t *head, int l, int r)
+/**
+ * do quick sort
+ * @param head [description]
+ * @param l    [description]
+ * @param r    [description]
+ */
+void
+quick_sort(sorted_array_node_t *head, int l, int r)
 {
 	int j;
 	if (l < r)
@@ -79,13 +111,23 @@ void quick_sort(sorted_array_node_t *head, int l, int r)
 	}
 }
 
-void sort_array(sorted_array_context_t *ctx)
+/**
+ * sort array by quick sort function
+ * @param ctx [description]
+ */
+void
+sort_array(sorted_array_context_t *ctx)
 {
 	sorted_array_node_t *head = ctx->head;
 	quick_sort(head, 0, 1000);
 }
 
-void print_sorted_array(sorted_array_context_t *ctx)
+/**
+ * print array
+ * @param ctx [description]
+ */
+void
+print_sorted_array(sorted_array_context_t *ctx)
 {
 	sorted_array_node_t *head = ctx->head;
 	int i;
@@ -102,7 +144,8 @@ void print_sorted_array(sorted_array_context_t *ctx)
  * after write operation end, it clean whole array to reuse
  * @param ctx [description]
  */
-void write_sorted_array(sorted_array_context_t *ctx)
+void
+write_sorted_array(sorted_array_context_t *ctx)
 {
 	//TODO implement
 	sort_array(ctx);
@@ -113,7 +156,8 @@ void write_sorted_array(sorted_array_context_t *ctx)
  * free sorted array
  * @param ctx [description]
  */
-void free_sorted_array(sorted_array_context_t *ctx)
+void
+free_sorted_array(sorted_array_context_t *ctx)
 {
 	//TODO implement
 }
