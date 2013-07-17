@@ -6,6 +6,22 @@
 
 #define ARRAY_SIZE 32768
 
+
+/**
+ * swap node a and b
+ * @param a [description]
+ * @param b [description]
+ */
+static inline void
+swap(sorted_array_node_t *a, sorted_array_node_t *b)
+{
+	sorted_array_node_t temp;
+	temp = *a;
+	*a    = *b;
+	*b    = temp;
+}
+static void sort_array(sorted_array_context_t *ctx);
+
 /**
  * init context for sorted array index
  * @param ctx  [description]
@@ -33,14 +49,24 @@ init_sorted_array(sorted_array_context_t *ctx)
  * insert data into sorted array using double linked list
  * @param ctx  [description]
  * @param data [description]
+ * @return      [description]
  */
-void
+int
 insert_into_sorted_array(sorted_array_context_t *ctx, unsigned int data)
 {
 	sorted_array_node_t *node = &ctx->head[ctx->last_idx];
 	node->value = data;
 	//node->file_offset = offset;
 	ctx->last_idx = ctx->last_idx+1;
+
+	if(ctx->last_idx >= ARRAY_SIZE)
+	{
+		//XXX where should we locate sort array?
+		sort_array(ctx);
+		return 1;
+	}
+
+	return 0;
 }
 
 /**
@@ -55,27 +81,13 @@ search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data)
 }
 
 /**
- * swap node a and b
- * @param a [description]
- * @param b [description]
- */
-inline void
-swap(sorted_array_node_t *a, sorted_array_node_t *b)
-{
-	sorted_array_node_t temp;
-	temp = *a;
-	*a    = *b;
-	*b    = temp;
-}
-
-/**
  * sort parition
  * @param  head [description]
  * @param  l    [description]
  * @param  r    [description]
  * @return      [description]
  */
-int
+static int
 partition(sorted_array_node_t *head, int l, int r)
 {
 	unsigned int pivot, i, j;
@@ -99,7 +111,7 @@ partition(sorted_array_node_t *head, int l, int r)
  * @param l    [description]
  * @param r    [description]
  */
-void
+static void
 quick_sort(sorted_array_node_t *head, int l, int r)
 {
 	int j;
@@ -115,11 +127,13 @@ quick_sort(sorted_array_node_t *head, int l, int r)
  * sort array by quick sort function
  * @param ctx [description]
  */
-void
+static void
 sort_array(sorted_array_context_t *ctx)
 {
+	LOG_MESSAGE("=== start sorting");
 	sorted_array_node_t *head = ctx->head;
-	quick_sort(head, 0, 1000);
+	quick_sort(head, 0, ctx->last_idx-1);
+	LOG_MESSAGE("=== close sorting");
 }
 
 /**
@@ -148,8 +162,7 @@ void
 write_sorted_array(sorted_array_context_t *ctx)
 {
 	//TODO implement
-	sort_array(ctx);
-	print_sorted_array(ctx);
+	//print_sorted_array(ctx);
 }
 
 /**
@@ -159,5 +172,6 @@ write_sorted_array(sorted_array_context_t *ctx)
 void
 free_sorted_array(sorted_array_context_t *ctx)
 {
-	//TODO implement
+	free(ctx->head);
+	free(ctx);
 }

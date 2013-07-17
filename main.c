@@ -12,20 +12,18 @@
  * main for sorted array index structure
  * @param ctx [description]
  */
-void
+static void
 sorted_array_main(sorted_array_context_t *ctx)
 {
 	init_sorted_array(ctx);
 
 	bool done = false;
-	unsigned int data = 0;
 
 	srand(time(NULL));
 
 	while(!done) {
 		//TODO generate rand data iteratively
-		insert_into_sorted_array(ctx, rand());
-		if (data++ > 100)
+		if (insert_into_sorted_array(ctx, rand()))
 			done = true;
 	}
 
@@ -36,7 +34,7 @@ sorted_array_main(sorted_array_context_t *ctx)
  * exit for sorted array index structure
  * @param ctx [description]
  */
-void
+static void
 sorted_array_exit(sorted_array_context_t *ctx)
 {
 	free_sorted_array(ctx);	
@@ -46,7 +44,7 @@ sorted_array_exit(sorted_array_context_t *ctx)
  * main for bloom filter index structure
  * @param ctx [description]
  */
-void
+static void
 bloom_filter_main(bloom_filter_context_t *ctx)
 {
 	init_bloom_filter(ctx);
@@ -67,7 +65,7 @@ bloom_filter_main(bloom_filter_context_t *ctx)
  * exit for bloom filter index structure
  * @param ctx [description]
  */
-void
+static void
 bloom_filter_exit(bloom_filter_context_t *ctx)
 {
 	free_bloom_filter(ctx);
@@ -77,7 +75,7 @@ bloom_filter_exit(bloom_filter_context_t *ctx)
  * main for avl tree index structure
  * @param ctx [description]
  */
-void
+static void
 avl_tree_main(avl_tree_context_t *ctx)
 {
 	init_avl_tree(ctx);
@@ -99,13 +97,13 @@ avl_tree_main(avl_tree_context_t *ctx)
  * exit for avl tree index structure
  * @param ctx [description]
  */
-void
+static void
 avl_tree_exit(avl_tree_context_t *ctx)
 {
 	free_avl_tree(ctx);
 }
 
-void
+static void
 usage(char* argv0)
 {
 		fprintf(stderr, "usage: %s <index structure>\n", argv0);
