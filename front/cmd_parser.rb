@@ -1,5 +1,9 @@
 require 'readline'
 
+LIST = [
+  'quit', 'exit'
+].sort
+
 def parse_cmd cmd
 	cmd_split = cmd.split(" and ")
 	cmd_list  = []
@@ -32,16 +36,24 @@ puts ""
 
 i = 0
 
-while cmd = readline_with_history(i)
-	if cmd[0] != "#"
-		i = i+1
-    case cmd
-    when "quit"
-      break;
-    when "exit"
-      break;
-    else
-      parse_cmd cmd
+comp = proc { |s| LIST.grep( /^#{Regexp.escape(s)}/ ) }
+Readline.completion_append_character = " "
+Readline.completion_proc = comp
+
+begin
+  while cmd = readline_with_history(i)
+    if cmd[0] != "#"
+      i = i+1
+      case cmd
+        when /^\s*quit\s*/
+        break;
+      when /^\s*exit\s*/
+        break;
+      else
+        parse_cmd cmd
+      end
     end
-	end
+  end
+rescue Interrupt => e
+  puts "interrput occured. exit flosis query"
 end
