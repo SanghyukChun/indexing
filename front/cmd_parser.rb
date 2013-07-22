@@ -1,5 +1,6 @@
 require 'readline'
 require 'socket'
+include Socket::Constants
 
 LIST = [
   'host', 'shost', 'dhost', 'src host', 'dst host',
@@ -12,7 +13,11 @@ LIST = [
   'help', 'quit', 'exit'
 ].sort
 
-def err
+def err type=nil
+  if type == :arg
+    puts "Usage: #{File.basename($0)} [options]"
+    exit(-1)
+  end
   puts "unexpected command"
   return -1
 end
@@ -38,9 +43,9 @@ def parse_cmd cmd
   return cmds
 end
 
-def send cmds, server
+def send cmds, socket
   cmds.each do |cmd|
-    server.write(cmds)
+    socket.write(cmd)
   end
 end
 
@@ -60,10 +65,15 @@ def print_help
   puts "exit / quit : exit program"
 end
 
-host = 'localhost'
-port = 2000
+port, host = nil
+port = ARGV[ARGV.index("-p")+1] if ARGV.include? "-p"
+host = ARGV[ARGV.index("-h")+1] if ARGV.include? "-h"
 
-server = TCPSocket.open(host, port)
+err(:arg) if port.nil? or host.nil?
+
+socket = Socket.new( AF_INET, SOCK_STREAM, IPPROTO_TCP )
+sockaddr = Socket.pack_sockaddr_in( port, host )
+socket.connect(sockaddr)
 
 puts "==========================================="
 puts "========    flosis query client    ========"
@@ -89,12 +99,11 @@ begin
         print_help
       else
         cmds = parse_cmd(cmd)
-        send cmds, server
+        send cmds, socket
       end
     end
   end
 rescue Interrupt => e
   puts "interrput occured. exit flosis query"
 end
-
-server.close
+socket.close
