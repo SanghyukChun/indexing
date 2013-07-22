@@ -1,7 +1,7 @@
 require 'readline'
 
 LIST = [
-  'quit', 'exit'
+  'help', 'quit', 'exit'
 ].sort
 
 def parse_cmd cmd
@@ -29,6 +29,13 @@ def readline_with_history line_num
   cmd
 end
 
+def print_help
+  puts "flosis query client documents"
+  puts "commands"
+  puts "help : print help"
+  puts "exit / quit : exit program"
+end
+
 puts "==========================================="
 puts "========    flosis query client    ========"
 puts "==========================================="
@@ -45,10 +52,12 @@ begin
     if cmd[0] != "#"
       i = i+1
       case cmd
-        when /^\s*quit\s*/
+      when /^\s*quit\s*/
         break;
       when /^\s*exit\s*/
         break;
+      when /^\s*help\s*/
+        print_help
       else
         parse_cmd cmd
       end
