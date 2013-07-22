@@ -1,23 +1,30 @@
 require 'readline'
 
 LIST = [
+  'host', 'shost', 'dhost', 'src host', 'dst host',
+  'ether src', 'ether dst', 'ether host', 'gateway',
+  'net' 'snet', 'dnet', 'src net', 'dst net',
+  'port', 'sport', 'dport', 'src port', 'dst port',
+  'less', 'greater',
+  'ip proto',
+  'and', 'or', 'not',
   'help', 'quit', 'exit'
 ].sort
 
 def parse_cmd cmd
-	cmd_split = cmd.split(" and ")
-	cmd_list  = []
-	i = 0
-	while not cmd_split[i].nil?
-		cmd_opts = cmd_split[i].split(" ")
-		if cmd_opts.length != 2
-			puts "flosis: command not found: #{cmd_opts[0]}"
-			return
-		end
-		cmd_list << cmd_opts
-		i = i+1
-	end
-	puts cmd_list
+  cmd_split = cmd.split(" and ")
+  cmd_list  = []
+  i = 0
+  while not cmd_split[i].nil?
+    cmd_opts = cmd_split[i].split(" ")
+    if cmd_opts.length != 2
+      puts "flosis: command not found: #{cmd_opts[0]}"
+      return
+    end
+    cmd_list << cmd_opts
+    i = i+1
+  end
+  puts cmd_list
 end
 
 def readline_with_history line_num
