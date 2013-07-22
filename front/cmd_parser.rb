@@ -1,4 +1,5 @@
 require 'readline'
+require 'socket'
 
 LIST = [
   'host', 'shost', 'dhost', 'src host', 'dst host',
@@ -34,12 +35,12 @@ def parse_cmd cmd
     end
   end
   cmds << {:cmd=>cmd}
-  send cmds
+  return cmds
 end
 
-def send cmds
+def send cmds, server
   cmds.each do |cmd|
-    puts cmd
+    server.write(cmds)
   end
 end
 
@@ -58,6 +59,11 @@ def print_help
   puts "help : print help"
   puts "exit / quit : exit program"
 end
+
+host = 'localhost'
+port = 2000
+
+server = TCPSocket.open(host, port)
 
 puts "==========================================="
 puts "========    flosis query client    ========"
@@ -82,10 +88,13 @@ begin
       when /^\s*help\s*/
         print_help
       else
-        parse_cmd cmd
+        cmds = parse_cmd(cmd)
+        send cmds, server
       end
     end
   end
 rescue Interrupt => e
   puts "interrput occured. exit flosis query"
 end
+
+server.close
