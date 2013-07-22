@@ -26,7 +26,6 @@ def parse_cmd cmd
   cmd = []
 
   args.each do |arg|
-    arg = arg.downcase
     cmd << arg
 
     if %w(and or).include? arg
@@ -39,7 +38,9 @@ def parse_cmd cmd
 end
 
 def send cmds
-  puts cmds
+  cmds.each do |cmd|
+    puts cmd
+  end
 end
 
 def readline_with_history line_num
