@@ -30,6 +30,7 @@ main(const int argc, const char **argv)
   int len, i;
   struct sockaddr_in saddr = {0}; /* {0} intializes all fields to 0 */
   char buf[MAX_LINE];
+  int pid;
 
   /* check the command line arguments */
   if (argc < 2 ||                       /* # of argument too small */
@@ -63,20 +64,26 @@ main(const int argc, const char **argv)
   /* accept a connection and handle it in a forked process */
   while ((c = accept(s, NULL, NULL)) >= 0) {
 
-	/* read a line from client */
-	if ((len = read(c, buf, sizeof(buf)-1)) <= 0) {
-	  perror("Error: read() failed\n");
-	  exit(-1);
-	}
-	
-	/* send it back to client */
-	if (write(c, buf, len) <= 0) {
-	  perror("Error: write() failed\n");
-	  exit(-1);
-	}
-	close(c);
-  }
+    pid = fork();
+    if (pid == 0) {
+      /* read a line from client */
+      while (len = read(c, buf, sizeof(buf)-1)) {
+        if (len <= 0) {
+          perror("Error: read() failed\n");
+          exit(-1);
+        }
+        printf("%s\n", buf);
+      }
+    }
+    if (pid == -1) {
+      perror("Error: fork() failed\n");
+      exit(-1);
+    }
+    close(c);
 
+    if (pid == 0)
+      exit(0);
+  }
   perror("Error:accept() failed");
   close(s);
   return(-1);
