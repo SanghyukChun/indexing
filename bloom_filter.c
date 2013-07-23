@@ -128,6 +128,25 @@ write_bloom_filter(bloom_filter_context_t *ctx)
 	//TODO implement
 }
 
+void
+clean_filter(unsigned char *filter)
+{
+	int i;
+	for(i = 0; i < FILTER_SIZE_BYTES / 32; i++)
+	{
+		filter[i] = 0;
+	}
+}
+
+void
+clean_bloom_filter(bloom_filter_context_t *ctx)
+{
+	clean_filter(ctx->saddr);
+	clean_filter(ctx->daddr);
+	clean_filter(ctx->sport);
+	clean_filter(ctx->dport);
+}
+
 /**
  * free bloom filter
  * @param ctx [description]

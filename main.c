@@ -26,7 +26,7 @@ sorted_array_main(sorted_array_context_t *ctx, bloom_filter_context_t *bctx, int
 
 	int cnt = 0;
 	unsigned int value = 0;
-	for (cnt = 0; cnt < 5; cnt++)
+	for (cnt = 0; cnt < 1; cnt++)
 	{
 		done = false;
 		while(!done) {
@@ -42,9 +42,11 @@ sorted_array_main(sorted_array_context_t *ctx, bloom_filter_context_t *bctx, int
 			if (insert_into_sorted_array(ctx, meta))
 				done = true;
 		}
+		print_sorted_array(ctx, TYPE_SADDR);
 		search_from_bloom_filter(bctx, TYPE_SADDR, value);
 		search_from_sorted_array(ctx, TYPE_SADDR, value);
 
+		clean_bloom_filter(bctx);
 		clean_index_array(ctx);
 	}
 
@@ -58,7 +60,7 @@ sorted_array_main(sorted_array_context_t *ctx, bloom_filter_context_t *bctx, int
 static void
 sorted_array_exit(sorted_array_context_t *ctx)
 {
-	free_sorted_array(ctx);	
+	//free_sorted_array(ctx);	
 }
 
 /**
