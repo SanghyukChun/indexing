@@ -8,7 +8,6 @@
 
 int ARRAY_SIZE;
 static inline void sort_array(sorted_array_context_t *ctx);
-inline static void clean_index_array(sorted_array_context_t *ctx);
 static inline int binary_search(sorted_array_node_t *head, int start, int end, unsigned int data);
 
 /**
@@ -88,7 +87,6 @@ insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
 	{
 		sort_array(ctx);
 		write_sorted_array(ctx);
-		clean_index_array(ctx);
 		return 1;
 	}
 
@@ -277,7 +275,7 @@ clean_array(sorted_array_node_t *head)
  * clean whole arrays to reuse
  * @param ctx context
  */
-inline static void 
+inline void 
 clean_index_array(sorted_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start clean");

@@ -44,6 +44,8 @@ sorted_array_main(sorted_array_context_t *ctx, bloom_filter_context_t *bctx, int
 		}
 		search_from_bloom_filter(bctx, TYPE_SADDR, value);
 		search_from_sorted_array(ctx, TYPE_SADDR, value);
+
+		clean_index_array(ctx);
 	}
 
 	write_sorted_array(ctx);
