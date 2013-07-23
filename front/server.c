@@ -103,10 +103,8 @@ main(const int argc, const char **argv)
   while ((c = accept(s, NULL, NULL)) >= 0) {
     /* read a line from client */
     while (len = read(c, buf, sizeof(buf)-1)) {
-      if (len <= 0) {
-        perror("Error: read() failed\n");
-        exit(-1);
-      }
+      if (len <= 0) { perror("Error: read() failed\n"); exit(-1); }
+      buf[len] = 0;
 
       /* bpf loop */
       bpf_loop(ctx, buf);
