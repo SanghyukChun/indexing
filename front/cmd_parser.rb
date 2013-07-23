@@ -35,7 +35,7 @@ def parse_cmd cmd
     cmd << arg
 
     if %w(and or).include? arg
-      cmds << {:cmd=>cmd[0..-1], :opt=>cmd[-1]}
+      cmds << {:cmd=>cmd[0..-2], :opt=>cmd[-1]}
       cmd = []
     end
   end
