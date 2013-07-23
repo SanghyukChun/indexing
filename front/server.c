@@ -11,6 +11,8 @@
 #include <signal.h>
 #include <pcap.h>
 
+#include "server.h"
+
 #define MAX_LINE 4096 
 #define MAX_PACKET_SIZE 4096 
 #define FILTER_RULE "tcp"
@@ -25,13 +27,25 @@ usage(const char *prog)
 }
 
 void
-init_pcap()
+init_bpf_context(bpf_context_t *ctx)
+{
+  struct bpf_program *bpf = (struct bpf_program *)malloc(sizeof(struct bpf_program));
+  ctx->bpf = bpf;
+}
+
+void
+init_pcap(bpf_context_t *ctx)
 {
   bpf_u_int32 bpfnet = 0;
-  struct bpf_program *bpf;
-  if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, bpf, FILTER_RULE, 0, bpfnet)) {
+  if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, ctx->bpf, FILTER_RULE, 0, bpfnet)) {
     fprintf(stderr, "Cannot compile BPF filter\n");
   }
+}
+
+void
+bpf_loop(bpf_context_t *ctx, char buf[])
+{
+  printf("%s\n", buf);
 }
 
 /*----------------------------------------------------*/
@@ -71,7 +85,11 @@ main(const int argc, const char **argv)
     exit(-1);
   }
 
-  init_pcap();
+  /* initialize bpf */
+  bpf_context_t *ctx = (bpf_context_t *)malloc(sizeof(bpf_context_t));
+  init_bpf_context(ctx);
+  init_pcap(ctx);
+
   /* accept a connection and handle it in a forked process */
   while ((c = accept(s, NULL, NULL)) >= 0) {
     /* read a line from client */
@@ -81,7 +99,7 @@ main(const int argc, const char **argv)
         exit(-1);
       }
       /* TODO implement */
-      printf("%s\n", buf);
+      bpf_loop(ctx, buf);
     }
     close(c);
   }
