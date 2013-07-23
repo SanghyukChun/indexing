@@ -4,7 +4,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "sorted_array.h"
+#include "index.h"
 #include "bloom_filter.h"
 
 /**

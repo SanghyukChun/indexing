@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include "sorted_array.h"
+#include "index.h"
 
 /*#define ARRAY_SIZE 32768*/
 
