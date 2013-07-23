@@ -5,7 +5,6 @@
 #include <time.h>
 
 #include "index.h"
-#include "bloom_filter.h"
 
 /**
  * main for index array index structure
@@ -14,8 +13,7 @@
 static void
 index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int size)
 {
-	init_index_array(ctx, size);
-	init_bloom_filter(bctx);
+	init_index_array(ctx, bctx, size);
 
 	bool done = false;
 
@@ -38,12 +36,10 @@ index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 			value = info->saddr;
 			//TODO generate rand data iteratively
 			/*printf("meta: %u\n", meta->flowinfo.saddr);*/
-			insert_into_bloom_filter(bctx, meta);
 			if (insert_into_index_array(ctx, meta))
 				done = true;
 		}
 		print_index_array(ctx, TYPE_SADDR);
-		search_from_bloom_filter(bctx, TYPE_SADDR, value);
 		search_from_index_array(ctx, TYPE_SADDR, value);
 
 		clean_bloom_filter(bctx);

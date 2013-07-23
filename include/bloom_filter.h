@@ -15,7 +15,7 @@ typedef struct bloom_filter_context
 
 void init_bloom_filter(bloom_filter_context_t *ctx);
 void insert_into_bloom_filter(bloom_filter_context_t *ctx, FlowMeta *meta);
-void search_from_bloom_filter(bloom_filter_context_t *ctx, int type, unsigned int data);
+int search_from_bloom_filter(bloom_filter_context_t *ctx, int type, unsigned int data);
 void write_bloom_filter(bloom_filter_context_t *ctx);
 void clean_bloom_filter(bloom_filter_context_t *ctx);
 void free_bloom_filter(bloom_filter_context_t *ctx);

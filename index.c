@@ -34,7 +34,7 @@ init_array(index_array_node_t **head)
  * @param ctx  context
  */
 inline void
-init_index_array(index_array_context_t *ctx, int size)
+init_index_array(index_array_context_t *ctx, bloom_filter_context_t *bctx, int size)
 {
 	ARRAY_SIZE = size;
 	LOG_MESSAGE("=== open init index array");
@@ -44,6 +44,8 @@ init_index_array(index_array_context_t *ctx, int size)
 	init_array(&ctx->sport);
 	init_array(&ctx->dport);
 
+	init_bloom_filter(bctx);
+	ctx->bctx = bctx;
 	ctx->last_idx = 0;
 
 	LOG_MESSAGE("=== close init index array");
@@ -80,6 +82,7 @@ insert_into_index_array(index_array_context_t *ctx, FlowMeta *meta)
 	insert_index(ctx, ctx->daddr, meta->flowinfo.daddr, meta);
 	insert_index(ctx, ctx->sport, meta->flowinfo.sport, meta);
 	insert_index(ctx, ctx->dport, meta->flowinfo.dport, meta);
+	insert_into_bloom_filter(ctx->bctx, meta);
 
 	ctx->last_idx = ctx->last_idx+1;
 
@@ -129,14 +132,22 @@ inline void
 search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 {
 	int res = -1;
-	if (type | TYPE_SADDR)
-		res = binary_search(ctx->saddr, 0, ARRAY_SIZE-1, data);
-	else if (type | TYPE_DADDR)
-		res = binary_search(ctx->daddr, 0, ARRAY_SIZE-1, data);
-	else if (type | TYPE_SPORT)
-		res = binary_search(ctx->sport, 0, ARRAY_SIZE-1, data);
-	else if (type | TYPE_DPORT)
-		res = binary_search(ctx->dport, 0, ARRAY_SIZE-1, data);
+	if (type | TYPE_SADDR){
+		if (search_from_bloom_filter(ctx->bctx, TYPE_SADDR, data))
+			res = binary_search(ctx->saddr, 0, ARRAY_SIZE-1, data);
+	}
+	else if (type | TYPE_DADDR){
+		if (search_from_bloom_filter(ctx->bctx, TYPE_DADDR, data))
+			res = binary_search(ctx->daddr, 0, ARRAY_SIZE-1, data);
+	}
+	else if (type | TYPE_SPORT){
+		if (search_from_bloom_filter(ctx->bctx, TYPE_SPORT, data))
+			res = binary_search(ctx->sport, 0, ARRAY_SIZE-1, data);
+	}
+	else if (type | TYPE_DPORT){
+		if (search_from_bloom_filter(ctx->bctx, TYPE_DPORT, data))
+			res = binary_search(ctx->dport, 0, ARRAY_SIZE-1, data);
+	}
 	
 	if (res == -1) {
 		printf("%u do not exist in the array\n", data);

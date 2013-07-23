@@ -97,7 +97,7 @@ find_in_filter(unsigned char *filter, unsigned int data)
  * search data from bloom filter
  * @param ctx [description]
  */
-void
+int
 search_from_bloom_filter(bloom_filter_context_t *ctx, int type, unsigned int data)
 {
 	int res = -1;
@@ -111,9 +111,9 @@ search_from_bloom_filter(bloom_filter_context_t *ctx, int type, unsigned int dat
 		res = find_in_filter(ctx->dport, data);
 	
 	if (res)
-		printf("maybe in\n");
+		return 1;
 	else
-		printf("there is no given data\n");
+		return 0;
 	//TODO implement
 }
 
