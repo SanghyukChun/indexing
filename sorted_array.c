@@ -169,7 +169,7 @@ static inline int
 partition(sorted_array_node_t *head, int l, int r)
 {
 	unsigned int pivot, i, j;
-	pivot = (&head[(l+r)/2])->value;
+	pivot = (&head[l])->value;
 	i = l; j = r+1;
 
 	while(1)
@@ -223,23 +223,32 @@ sort_array(sorted_array_context_t *ctx)
 	LOG_MESSAGE("=== close sorting");
 }
 
+static inline void
+print_array(sorted_array_node_t *head)
+{
+	int i;
+	for (i = 0; i <ARRAY_SIZE; i++)
+	{
+		sorted_array_node_t *node = &head[i];
+		printf("%u\n", node->value);
+	}
+}
+
 /**
  * print array
  * @param ctx context
  */
 inline void
-print_sorted_array(sorted_array_context_t *ctx)
+print_sorted_array(sorted_array_context_t *ctx, int type)
 {
-	/**
-	sorted_array_node_t *head = ctx->head;
-	int i;
-	for (i = 0; i <ARRAY_SIZE; i++)
-	{
-		sorted_array_node_t *node = &head[i];
-		if (node->value != 0)
-			printf("%d\n", node->value);
-	}
-	**/
+	if (type | TYPE_SADDR)
+		print_array(ctx->saddr);
+	else if (type | TYPE_DADDR)
+		print_array(ctx->daddr);
+	else if (type | TYPE_SPORT)
+		print_array(ctx->sport);
+	else if (type | TYPE_DPORT)
+		print_array(ctx->dport);
 }
 
 /**
