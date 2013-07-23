@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include "sorted_array.h"
 
-#define ARRAY_SIZE 32768
+/*#define ARRAY_SIZE 32768*/
 
+int ARRAY_SIZE;
 static inline void sort_array(sorted_array_context_t *ctx);
 inline static void clean_index_array(sorted_array_context_t *ctx);
 static inline int binary_search(sorted_array_node_t *head, int start, int end, unsigned int data);
@@ -33,8 +35,9 @@ init_array(sorted_array_node_t **head)
  * @param ctx  context
  */
 inline void
-init_sorted_array(sorted_array_context_t *ctx)
+init_sorted_array(sorted_array_context_t *ctx, int size)
 {
+	ARRAY_SIZE = size;
 	LOG_MESSAGE("=== open init sorted array");
 
 	init_array(&ctx->saddr);
@@ -86,7 +89,7 @@ insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
 		sort_array(ctx);
 		write_sorted_array(ctx);
 		clean_index_array(ctx);
-		return 0;
+		return 1;
 	}
 
 	return 0;
@@ -161,7 +164,7 @@ static inline int
 partition(sorted_array_node_t *head, int l, int r)
 {
 	unsigned int pivot, i, j;
-	pivot = (&head[l])->value;
+	pivot = (&head[(l+r)/2])->value;
 	i = l; j = r+1;
 
 	while(1)
@@ -201,12 +204,17 @@ static inline void
 sort_array(sorted_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start sorting");
+	struct timeval t1,t2;
+	gettimeofday(&t1, NULL);
 
 	quick_sort(ctx->saddr, 0, ctx->last_idx-1);
 	quick_sort(ctx->daddr, 0, ctx->last_idx-1);
 	quick_sort(ctx->sport, 0, ctx->last_idx-1);
 	quick_sort(ctx->dport, 0, ctx->last_idx-1);
+	gettimeofday(&t2, NULL);
 	
+	double elapsed = (double)(t2.tv_sec - t1.tv_sec) + (double)(t2.tv_usec - t1.tv_usec) * 1e-6;
+	printf("elapsed: %f\n", elapsed);
 	LOG_MESSAGE("=== close sorting");
 }
 

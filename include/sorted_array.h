@@ -21,7 +21,7 @@ typedef struct sorted_array_context
 	int last_idx;
 } sorted_array_context_t;
 
-inline void init_sorted_array(sorted_array_context_t *ctx);
+inline void init_sorted_array(sorted_array_context_t *ctx, int size);
 inline int insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta);
 inline void search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data);
 inline void write_sorted_array(sorted_array_context_t *ctx);
