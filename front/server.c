@@ -45,6 +45,15 @@ init_pcap(bpf_context_t *ctx)
 void
 bpf_loop(bpf_context_t *ctx, char buf[])
 {
+  /* TODO implement */
+  u_char *pkt;
+  int len;
+  struct bpf_insn *pc = ctx->bpf->bf_insns;
+  /*
+  if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
+    printf("bpf\n");
+  */
+ 
   printf("%s\n", buf);
 }
 
@@ -98,8 +107,10 @@ main(const int argc, const char **argv)
         perror("Error: read() failed\n");
         exit(-1);
       }
-      /* TODO implement */
+
+      /* bpf loop */
       bpf_loop(ctx, buf);
+
     }
     close(c);
   }
