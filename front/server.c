@@ -26,44 +26,10 @@ usage(const char *prog)
 	  prog);
 }
 
-void
-init_bpf_context(bpf_context_t *ctx)
+static int
+get_port(const int argc, const char **argv)
 {
-  struct bpf_program *bpf = (struct bpf_program *)malloc(sizeof(struct bpf_program));
-  ctx->bpf = bpf;
-}
-
-void
-init_pcap(bpf_context_t *ctx)
-{
-  bpf_u_int32 bpfnet = 0;
-  if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, ctx->bpf, FILTER_RULE, 0, bpfnet)) {
-    fprintf(stderr, "Cannot compile BPF filter\n");
-  }
-}
-
-void
-bpf_loop(bpf_context_t *ctx, char buf[])
-{
-  /* TODO implement */
-  u_char *pkt;
-  int len;
-  struct bpf_insn *pc = ctx->bpf->bf_insns;
-  /*
-  if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
-    printf("bpf\n");
-  */
- 
-  printf("%s\n", buf);
-}
-
-/*----------------------------------------------------*/
-int 
-main(const int argc, const char **argv)
-{
-  int port, s, c, len;
-  struct sockaddr_in saddr = {0}; /* {0} intializes all fields to 0 */
-  char buf[MAX_LINE];
+  int port;
 
   /* check the command line arguments */
   if (argc < 2 ||                       /* # of argument too small */
@@ -72,6 +38,14 @@ main(const int argc, const char **argv)
     usage(argv[0]);
     exit(-1);
   }
+  return port;
+}
+
+static int
+init_socket(int port)
+{
+  int s;
+  struct sockaddr_in saddr = {0}; /* {0} intializes all fields to 0 */
 
   /* create the listening socket */
   if ((s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
@@ -93,6 +67,49 @@ main(const int argc, const char **argv)
     perror("Error: listen() failed");
     exit(-1);
   }
+
+  return s;
+}
+
+static void
+init_bpf_context(bpf_context_t *ctx)
+{
+  struct bpf_program *bpf = (struct bpf_program *)malloc(sizeof(struct bpf_program));
+  ctx->bpf = bpf;
+}
+
+static void
+init_pcap(bpf_context_t *ctx)
+{
+  bpf_u_int32 bpfnet = 0;
+  if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, ctx->bpf, FILTER_RULE, 0, bpfnet)) {
+    fprintf(stderr, "Cannot compile BPF filter\n");
+  }
+}
+
+static void
+bpf_loop(bpf_context_t *ctx, char buf[])
+{
+  /* TODO implement */
+  u_char *pkt;
+  int len;
+  struct bpf_insn *pc = ctx->bpf->bf_insns;
+  /*
+  if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
+    printf("bpf\n");
+  */
+ 
+  printf("%s\n", buf);
+}
+
+/*----------------------------------------------------*/
+int 
+main(const int argc, const char **argv)
+{
+  int s, c, len;
+  char buf[MAX_LINE];
+
+  s = init_socket(get_port(argc, argv));
 
   /* initialize bpf */
   bpf_context_t *ctx = (bpf_context_t *)malloc(sizeof(bpf_context_t));
