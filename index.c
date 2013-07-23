@@ -305,7 +305,7 @@ clean_index_array(index_array_context_t *ctx)
 	clean_array(ctx->sport);
 	clean_array(ctx->dport);
 
-	clean_bloom_filter(bctx);
+	clean_bloom_filter(ctx->bctx);
 
 	ctx->last_idx = 0;
 
