@@ -42,8 +42,8 @@ sorted_array_main(sorted_array_context_t *ctx, bloom_filter_context_t *bctx, int
 			if (insert_into_sorted_array(ctx, meta))
 				done = true;
 		}
-		search_from_bloom_filter(bctx, value);
-		search_from_sorted_array(ctx, value);
+		search_from_bloom_filter(bctx, TYPE_SADDR, value);
+		search_from_sorted_array(ctx, TYPE_SADDR, value);
 	}
 
 	write_sorted_array(ctx);

@@ -23,6 +23,6 @@ typedef struct sorted_array_context
 
 inline void init_sorted_array(sorted_array_context_t *ctx, int size);
 inline int insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta);
-inline void search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data);
+inline void search_from_sorted_array(sorted_array_context_t *ctx, int type, unsigned int data);
 inline void write_sorted_array(sorted_array_context_t *ctx);
 inline void free_sorted_array(sorted_array_context_t *ctx);

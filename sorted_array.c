@@ -128,10 +128,17 @@ binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
  * @param data data to find
  */
 inline void
-search_from_sorted_array(sorted_array_context_t *ctx, unsigned int data)
+search_from_sorted_array(sorted_array_context_t *ctx, int type, unsigned int data)
 {
-	//TODO change function to use ENUM field marker
-	int res = binary_search(ctx->saddr, 0, ARRAY_SIZE-1, data);
+	int res = -1;
+	if (type | TYPE_SADDR)
+		res = binary_search(ctx->saddr, 0, ARRAY_SIZE-1, data);
+	else if (type | TYPE_DADDR)
+		res = binary_search(ctx->daddr, 0, ARRAY_SIZE-1, data);
+	else if (type | TYPE_SPORT)
+		res = binary_search(ctx->sport, 0, ARRAY_SIZE-1, data);
+	else if (type | TYPE_DPORT)
+		res = binary_search(ctx->dport, 0, ARRAY_SIZE-1, data);
 	
 	if (res == -1) {
 		printf("%u do not exist in the array\n", data);

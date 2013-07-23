@@ -98,9 +98,19 @@ find_in_filter(unsigned char *filter, unsigned int data)
  * @param ctx [description]
  */
 void
-search_from_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
+search_from_bloom_filter(bloom_filter_context_t *ctx, int type, unsigned int data)
 {
-	if (find_in_filter(ctx->saddr, data))
+	int res = -1;
+	if (type | TYPE_SADDR)
+		res = find_in_filter(ctx->saddr, data);
+	else if (type | TYPE_DADDR)
+		res = find_in_filter(ctx->daddr, data);
+	else if (type | TYPE_SPORT)
+		res = find_in_filter(ctx->sport, data);
+	else if (type | TYPE_DPORT)
+		res = find_in_filter(ctx->dport, data);
+	
+	if (res)
 		printf("maybe in\n");
 	else
 		printf("there is no given data\n");
