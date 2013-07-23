@@ -5,15 +5,17 @@
 #include <time.h>
 
 #include "sorted_array.h"
+#include "bloom_filter.h"
 
 /**
  * main for sorted array index structure
  * @param ctx [description]
  */
 static void
-sorted_array_main(sorted_array_context_t *ctx, int size)
+sorted_array_main(sorted_array_context_t *ctx, bloom_filter_context_t *bctx, int size)
 {
 	init_sorted_array(ctx, size);
+	init_bloom_filter(bctx);
 
 	bool done = false;
 
@@ -33,6 +35,7 @@ sorted_array_main(sorted_array_context_t *ctx, int size)
 			info->dport = rand();
 			//TODO generate rand data iteratively
 			/*printf("meta: %u\n", meta->flowinfo.saddr);*/
+			insert_into_bloom_filter(bctx, info->saddr);
 			if (insert_into_sorted_array(ctx, meta))
 				done = true;
 		}
@@ -61,8 +64,14 @@ sorted_array_exit(sorted_array_context_t *ctx)
 int
 main(int argc, char *argv[])
 {
-  sorted_array_context_t *ctx = (sorted_array_context_t *)malloc(sizeof(sorted_array_context_t));
-  sorted_array_main(ctx, atoi(argv[1]));
-  sorted_array_exit(ctx);
-  return 0;
+	if (argc != 2)
+	{
+		fprintf(stderr, "Usage: %s [array_size]\n", argv[0]);
+		exit(-1);
+	}
+	sorted_array_context_t *ctx = (sorted_array_context_t *)malloc(sizeof(sorted_array_context_t));
+	bloom_filter_context_t *bctx = (bloom_filter_context_t *)malloc(sizeof(bloom_filter_context_t));
+	sorted_array_main(ctx, bctx, atoi(argv[1]));
+	sorted_array_exit(ctx);
+	return 0;
 }

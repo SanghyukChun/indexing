@@ -1,7 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "bloom_filter.h"
+#include "hashes.h"
 
+#define FILTER_SIZE 32768
+#define NUM_HASHES 7
+#define FILTER_SIZE_BYTES (1 << (FILTER_SIZE - 3))
+#define FILTER_BITMASK ((1 << FILTER_SIZE) - 1)
+#define WORD_BUF_SIZE 32
+#define NUM_HASHES 7
 /**
  * init context for bloom filter
  * @param ctx [description]
@@ -9,7 +16,50 @@
 void
 init_bloom_filter(bloom_filter_context_t *ctx)
 {
-	//TODO implement
+	ctx->saddr = (unsigned char *)calloc(FILTER_SIZE, sizeof(unsigned char));
+	ctx->daddr = (unsigned char *)calloc(FILTER_SIZE, sizeof(unsigned char));
+	ctx->sport = (unsigned char *)calloc(FILTER_SIZE, sizeof(unsigned char));
+	ctx->dport = (unsigned char *)calloc(FILTER_SIZE, sizeof(unsigned char));
+}
+
+static void
+get_hashes(unsigned int hash[], unsigned char *data)
+{
+	hash[0] = RSHash  (data, 4);
+	hash[1] = DJBHash (data, 4);
+	hash[2] = FNVHash (data, 4);
+	hash[3] = JSHash  (data, 4);
+	hash[4] = PJWHash (data, 4);
+	hash[5] = SDBMHash(data, 4);
+	hash[6] = DEKHash (data, 4);
+}
+
+static void
+convert_into_char(unsigned char *char_data, unsigned int data)
+{
+	char_data[0] = (data >> 24) & 0xFF;
+	char_data[1] = (data >> 16) & 0xFF;
+	char_data[2] = (data >> 8) & 0xFF;
+	char_data[3] = (data) & 0xFF;
+}
+
+static void
+insert_into_bloom_filter_array(unsigned char *filter, unsigned int data)
+{
+	unsigned char* char_data = (unsigned char* )calloc(4, sizeof(unsigned char));
+	convert_into_char(char_data, data);
+	unsigned int hash[NUM_HASHES];
+	int i;
+
+	get_hashes(hash, char_data);	
+
+	for (i = 0; i < NUM_HASHES; i++) {
+		/* xor-fold the hash into FILTER_SIZE bits */
+		hash[i] = (hash[i] >> FILTER_SIZE) ^ 
+		          (hash[i] & FILTER_BITMASK);
+		/* set the bit in the filter */
+		filter[hash[i] >> 3] |= 1 << (hash[i] & 7);
+	}
 }
 
 /**
@@ -19,6 +69,7 @@ init_bloom_filter(bloom_filter_context_t *ctx)
 void
 insert_into_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
 {
+	insert_into_bloom_filter_array(ctx->saddr, data);
 	//TODO implement
 }
 
