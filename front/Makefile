@@ -1,12 +1,25 @@
 .PHONY: clean
 
-all: client server
+GCC = gcc
+GCC_OPT = -m64 -Wall -O2
 
-client: client.c
-	gcc -o $@ $^
+TARGET = server
 
-server: server.c
-	gcc -o $@ $^
+OBJS = server.o
+INC = -I./include
+
+LIBS = -lpthread -lpcap 
+
+all: $(TARGET) clean
+
+$(TARGET): $(OBJS)
+	$(GCC) $(GCC_OPT) -o $@ $^ $(INC) $(LIB_DIR) $(LIBS)
+
+.c.o:
+	$(GCC) $(GCC_OPT) -o $@ -c $^ $(INC)
 
 clean:
-	rm server client *.o *~
+	rm -f $(OBJS) *~ ./include/*~
+
+cleanall:
+	rm -f $(TARGET)

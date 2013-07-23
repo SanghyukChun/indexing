@@ -9,8 +9,11 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <pcap.h>
 
 #define MAX_LINE 4096 
+#define MAX_PACKET_SIZE 4096 
+#define FILTER_RULE "tcp"
 
 /*----------------------------------------------------*/
 static void
@@ -20,17 +23,24 @@ usage(const char *prog)
 	  "\tThe port number should be between 1024-65535.\n", 
 	  prog);
 }
+
+void
+init_pcap()
+{
+  bpf_u_int32 bpfnet = 0;
+  struct bpf_program *bpf;
+  if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, bpf, FILTER_RULE, 0, bpfnet)) {
+    fprintf(stderr, "Cannot compile BPF filter\n");
+  }
+}
+
 /*----------------------------------------------------*/
 int 
 main(const int argc, const char **argv)
 {
-  int port;
-  int s;
-  int c;
-  int len, i;
+  int port, s, c, len;
   struct sockaddr_in saddr = {0}; /* {0} intializes all fields to 0 */
   char buf[MAX_LINE];
-  int pid;
 
   /* check the command line arguments */
   if (argc < 2 ||                       /* # of argument too small */
@@ -61,28 +71,19 @@ main(const int argc, const char **argv)
     exit(-1);
   }
 
+  init_pcap();
   /* accept a connection and handle it in a forked process */
   while ((c = accept(s, NULL, NULL)) >= 0) {
-
-    pid = fork();
-    if (pid == 0) {
-      /* read a line from client */
-      while (len = read(c, buf, sizeof(buf)-1)) {
-        if (len <= 0) {
-          perror("Error: read() failed\n");
-          exit(-1);
-        }
-        printf("%s\n", buf);
+    /* read a line from client */
+    while (len = read(c, buf, sizeof(buf)-1)) {
+      if (len <= 0) {
+        perror("Error: read() failed\n");
+        exit(-1);
       }
-    }
-    if (pid == -1) {
-      perror("Error: fork() failed\n");
-      exit(-1);
+      /* TODO implement */
+      printf("%s\n", buf);
     }
     close(c);
-
-    if (pid == 0)
-      exit(0);
   }
   perror("Error:accept() failed");
   close(s);
