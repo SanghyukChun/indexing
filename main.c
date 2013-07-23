@@ -24,7 +24,7 @@ index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 
 	int cnt = 0;
 	unsigned int value = 0;
-	for (cnt = 0; cnt < 1; cnt++)
+	for (cnt = 0; cnt < 5; cnt++)
 	{
 		done = false;
 		while(!done) {
@@ -42,7 +42,6 @@ index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 		print_index_array(ctx, TYPE_SADDR);
 		search_from_index_array(ctx, TYPE_SADDR, value);
 
-		clean_bloom_filter(bctx);
 		clean_index_array(ctx);
 	}
 
