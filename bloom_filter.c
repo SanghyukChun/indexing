@@ -3,7 +3,7 @@
 #include "bloom_filter.h"
 #include "hashes.h"
 
-#define FILTER_SIZE 32768
+#define FILTER_SIZE 20
 #define NUM_HASHES 7
 #define FILTER_SIZE_BYTES (1 << (FILTER_SIZE - 3))
 #define FILTER_BITMASK ((1 << FILTER_SIZE) - 1)
@@ -16,10 +16,10 @@
 void
 init_bloom_filter(bloom_filter_context_t *ctx)
 {
-	ctx->saddr = (unsigned char *)calloc(FILTER_SIZE, sizeof(unsigned char));
-	ctx->daddr = (unsigned char *)calloc(FILTER_SIZE, sizeof(unsigned char));
-	ctx->sport = (unsigned char *)calloc(FILTER_SIZE, sizeof(unsigned char));
-	ctx->dport = (unsigned char *)calloc(FILTER_SIZE, sizeof(unsigned char));
+	ctx->saddr = (unsigned char *)calloc(FILTER_SIZE_BYTES, sizeof(unsigned char));
+	ctx->daddr = (unsigned char *)calloc(FILTER_SIZE_BYTES, sizeof(unsigned char));
+	ctx->sport = (unsigned char *)calloc(FILTER_SIZE_BYTES, sizeof(unsigned char));
+	ctx->dport = (unsigned char *)calloc(FILTER_SIZE_BYTES, sizeof(unsigned char));
 }
 
 static void
@@ -67,10 +67,30 @@ insert_into_bloom_filter_array(unsigned char *filter, unsigned int data)
  * @param ctx [description]
  */
 void
-insert_into_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
+insert_into_bloom_filter(bloom_filter_context_t *ctx, FlowMeta *meta)
 {
-	insert_into_bloom_filter_array(ctx->saddr, data);
-	//TODO implement
+	insert_into_bloom_filter_array(ctx->saddr, meta->flowinfo.saddr);
+	insert_into_bloom_filter_array(ctx->daddr, meta->flowinfo.daddr);
+	insert_into_bloom_filter_array(ctx->sport, meta->flowinfo.sport);
+	insert_into_bloom_filter_array(ctx->dport, meta->flowinfo.dport);
+}
+
+int
+find_in_filter(unsigned char *filter, unsigned int data)
+{
+	unsigned char* char_data = (unsigned char* )calloc(4, sizeof(unsigned char));
+	convert_into_char(char_data, data);
+	unsigned int hash[NUM_HASHES];
+	get_hashes(hash, char_data);
+	int i;
+
+	for (i = 0; i < NUM_HASHES; i++) {
+		hash[i] = (hash[i] >> FILTER_SIZE) ^ 
+		          (hash[i] & FILTER_BITMASK);
+		if (!(filter[hash[i] >> 3] & (1 << (hash[i] & 7))))
+			return 0;
+	} 
+	return 1;
 }
 
 /**
@@ -80,6 +100,10 @@ insert_into_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
 void
 search_from_bloom_filter(bloom_filter_context_t *ctx, unsigned int data)
 {
+	if (find_in_filter(ctx->saddr, data))
+		printf("maybe in\n");
+	else
+		printf("there is no given data\n");
 	//TODO implement
 }
 

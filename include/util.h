@@ -1,3 +1,6 @@
+#ifndef _UTILH_
+#define _UTILH_
+
 #define LOG 0
 #ifdef LOG
 #define LOG_MESSAGE(msg) printf("%s\n", msg)
@@ -25,3 +28,5 @@ typedef struct FlowMeta {
     uint16_t fileID;
     uint32_t offset;
 } FlowMeta;
+
+#endif

@@ -25,6 +25,7 @@ sorted_array_main(sorted_array_context_t *ctx, bloom_filter_context_t *bctx, int
 	FlowInfo *info = &meta->flowinfo;
 
 	int cnt = 0;
+	unsigned int value = 0;
 	for (cnt = 0; cnt < 5; cnt++)
 	{
 		done = false;
@@ -33,16 +34,19 @@ sorted_array_main(sorted_array_context_t *ctx, bloom_filter_context_t *bctx, int
 			info->daddr = rand();
 			info->sport = rand();
 			info->dport = rand();
+
+			value = info->saddr;
 			//TODO generate rand data iteratively
 			/*printf("meta: %u\n", meta->flowinfo.saddr);*/
-			insert_into_bloom_filter(bctx, info->saddr);
+			insert_into_bloom_filter(bctx, meta);
 			if (insert_into_sorted_array(ctx, meta))
 				done = true;
 		}
+		search_from_bloom_filter(bctx, value);
+		search_from_sorted_array(ctx, value);
 	}
 
 	write_sorted_array(ctx);
-	search_from_sorted_array(ctx, rand());
 }
 
 /**
