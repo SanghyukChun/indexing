@@ -8,13 +8,13 @@
 #include "bloom_filter.h"
 
 /**
- * main for sorted array index structure
+ * main for index array index structure
  * @param ctx [description]
  */
 static void
-sorted_array_main(sorted_array_context_t *ctx, bloom_filter_context_t *bctx, int size)
+index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int size)
 {
-	init_sorted_array(ctx, size);
+	init_index_array(ctx, size);
 	init_bloom_filter(bctx);
 
 	bool done = false;
@@ -39,28 +39,28 @@ sorted_array_main(sorted_array_context_t *ctx, bloom_filter_context_t *bctx, int
 			//TODO generate rand data iteratively
 			/*printf("meta: %u\n", meta->flowinfo.saddr);*/
 			insert_into_bloom_filter(bctx, meta);
-			if (insert_into_sorted_array(ctx, meta))
+			if (insert_into_index_array(ctx, meta))
 				done = true;
 		}
-		print_sorted_array(ctx, TYPE_SADDR);
+		print_index_array(ctx, TYPE_SADDR);
 		search_from_bloom_filter(bctx, TYPE_SADDR, value);
-		search_from_sorted_array(ctx, TYPE_SADDR, value);
+		search_from_index_array(ctx, TYPE_SADDR, value);
 
 		clean_bloom_filter(bctx);
 		clean_index_array(ctx);
 	}
 
-	write_sorted_array(ctx);
+	write_index_array(ctx);
 }
 
 /**
- * exit for sorted array index structure
+ * exit for index array index structure
  * @param ctx [description]
  */
 static void
-sorted_array_exit(sorted_array_context_t *ctx)
+index_array_exit(index_array_context_t *ctx)
 {
-	//free_sorted_array(ctx);	
+	//free_index_array(ctx);	
 }
 
 /**
@@ -77,9 +77,9 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Usage: %s [array_size]\n", argv[0]);
 		exit(-1);
 	}
-	sorted_array_context_t *ctx = (sorted_array_context_t *)malloc(sizeof(sorted_array_context_t));
+	index_array_context_t *ctx = (index_array_context_t *)malloc(sizeof(index_array_context_t));
 	bloom_filter_context_t *bctx = (bloom_filter_context_t *)malloc(sizeof(bloom_filter_context_t));
-	sorted_array_main(ctx, bctx, atoi(argv[1]));
-	sorted_array_exit(ctx);
+	index_array_main(ctx, bctx, atoi(argv[1]));
+	index_array_exit(ctx);
 	return 0;
 }

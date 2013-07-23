@@ -7,17 +7,17 @@
 /*#define ARRAY_SIZE 32768*/
 
 int ARRAY_SIZE;
-static inline void sort_array(sorted_array_context_t *ctx);
-static inline int binary_search(sorted_array_node_t *head, int start, int end, unsigned int data);
+static inline void sort_array(index_array_context_t *ctx);
+static inline int binary_search(index_array_node_t *head, int start, int end, unsigned int data);
 
 /**
  * allocate memory to given head node
  * @param head node structure which indicate first of index array
  */
 static inline void
-init_array(sorted_array_node_t **head)
+init_array(index_array_node_t **head)
 {
-	sorted_array_node_t *p = (sorted_array_node_t *)calloc(ARRAY_SIZE, sizeof(sorted_array_node_t));
+	index_array_node_t *p = (index_array_node_t *)calloc(ARRAY_SIZE, sizeof(index_array_node_t));
 
 	if (p == NULL)
 	{
@@ -29,15 +29,15 @@ init_array(sorted_array_node_t **head)
 }
 
 /**
- * init context for sorted array index
+ * init context for index array index
  * init array for each index field (source ip/port, destination ip/port)
  * @param ctx  context
  */
 inline void
-init_sorted_array(sorted_array_context_t *ctx, int size)
+init_index_array(index_array_context_t *ctx, int size)
 {
 	ARRAY_SIZE = size;
-	LOG_MESSAGE("=== open init sorted array");
+	LOG_MESSAGE("=== open init index array");
 
 	init_array(&ctx->saddr);
 	init_array(&ctx->daddr);
@@ -46,7 +46,7 @@ init_sorted_array(sorted_array_context_t *ctx, int size)
 
 	ctx->last_idx = 0;
 
-	LOG_MESSAGE("=== close init sorted array");
+	LOG_MESSAGE("=== close init index array");
 }
 
 /**
@@ -59,22 +59,22 @@ init_sorted_array(sorted_array_context_t *ctx, int size)
  * @param meta required to assign fileID and offset to node
  */
 static inline void
-insert_index(sorted_array_context_t *ctx, sorted_array_node_t *head, unsigned int data, FlowMeta *meta)
+insert_index(index_array_context_t *ctx, index_array_node_t *head, unsigned int data, FlowMeta *meta)
 {
-	sorted_array_node_t *node = &head[ctx->last_idx];
+	index_array_node_t *node = &head[ctx->last_idx];
 	node->value = data;
 	node->fileID = meta->fileID;
 	node->offset = meta->offset;
 }
 
 /**
- * insert metadata into sorted array using double linked list
+ * insert metadata into index array using double linked list
  * @param ctx  context
  * @param meta flow metadata to indexing
  * @return     it always return 0 except error occured
  */
 inline int
-insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
+insert_into_index_array(index_array_context_t *ctx, FlowMeta *meta)
 {
 	insert_index(ctx, ctx->saddr, meta->flowinfo.saddr, meta);
 	insert_index(ctx, ctx->daddr, meta->flowinfo.daddr, meta);
@@ -86,7 +86,7 @@ insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
 	if(ctx->last_idx >= ARRAY_SIZE)
 	{
 		sort_array(ctx);
-		write_sorted_array(ctx);
+		write_index_array(ctx);
 		return 1;
 	}
 
@@ -103,7 +103,7 @@ insert_into_sorted_array(sorted_array_context_t *ctx, FlowMeta *meta)
  *               if there is, it return index of given data
  */
 static inline int
-binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
+binary_search(index_array_node_t *head, int start, int end, unsigned int data)
 {
 	if (start > end)
 		return -1;
@@ -126,7 +126,7 @@ binary_search(sorted_array_node_t *head, int start, int end, unsigned int data)
  * @param data data to find
  */
 inline void
-search_from_sorted_array(sorted_array_context_t *ctx, int type, unsigned int data)
+search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 {
 	int res = -1;
 	if (type | TYPE_SADDR)
@@ -152,9 +152,9 @@ search_from_sorted_array(sorted_array_context_t *ctx, int type, unsigned int dat
  * @param b [description]
  */
 static inline void
-swap(sorted_array_node_t *a, sorted_array_node_t *b)
+swap(index_array_node_t *a, index_array_node_t *b)
 {
-	sorted_array_node_t temp;
+	index_array_node_t temp;
 	temp = *a; *a = *b;	*b = temp;
 }
 
@@ -166,7 +166,7 @@ swap(sorted_array_node_t *a, sorted_array_node_t *b)
  * @return      [description]
  */
 static inline int
-partition(sorted_array_node_t *head, int l, int r)
+partition(index_array_node_t *head, int l, int r)
 {
 	unsigned int pivot, i, j;
 	pivot = (&head[l])->value;
@@ -190,7 +190,7 @@ partition(sorted_array_node_t *head, int l, int r)
  * @param r    [description]
  */
 static inline void
-quick_sort(sorted_array_node_t *head, int l, int r)
+quick_sort(index_array_node_t *head, int l, int r)
 {
 	int j;
 	if (l < r)
@@ -206,7 +206,7 @@ quick_sort(sorted_array_node_t *head, int l, int r)
  * @param ctx context
  */
 static inline void
-sort_array(sorted_array_context_t *ctx)
+sort_array(index_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start sorting");
 	struct timeval t1,t2;
@@ -224,12 +224,12 @@ sort_array(sorted_array_context_t *ctx)
 }
 
 static inline void
-print_array(sorted_array_node_t *head)
+print_array(index_array_node_t *head)
 {
 	int i;
 	for (i = 0; i <ARRAY_SIZE; i++)
 	{
-		sorted_array_node_t *node = &head[i];
+		index_array_node_t *node = &head[i];
 		printf("%u\n", node->value);
 	}
 }
@@ -239,7 +239,7 @@ print_array(sorted_array_node_t *head)
  * @param ctx context
  */
 inline void
-print_sorted_array(sorted_array_context_t *ctx, int type)
+print_index_array(index_array_context_t *ctx, int type)
 {
 	if (type | TYPE_SADDR)
 		print_array(ctx->saddr);
@@ -252,12 +252,12 @@ print_sorted_array(sorted_array_context_t *ctx, int type)
 }
 
 /**
- * write sorted array to file system
+ * write index array to file system
  * after write operation end, it clean whole array to reuse
  * @param ctx [description]
  */
 inline void
-write_sorted_array(sorted_array_context_t *ctx)
+write_index_array(index_array_context_t *ctx)
 {
 	//TODO implement
 }
@@ -267,10 +267,10 @@ write_sorted_array(sorted_array_context_t *ctx)
  * @param head node structure which indicate first of index array
  */
 inline static void 
-clean_array(sorted_array_node_t *head)
+clean_array(index_array_node_t *head)
 {
 	int i;
-	sorted_array_node_t *node;
+	index_array_node_t *node;
 	for (i = 0; i < ARRAY_SIZE; i++)
 	{
 		node = &head[i];
@@ -285,7 +285,7 @@ clean_array(sorted_array_node_t *head)
  * @param ctx context
  */
 inline void 
-clean_index_array(sorted_array_context_t *ctx)
+clean_index_array(index_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start clean");
 
@@ -300,11 +300,11 @@ clean_index_array(sorted_array_context_t *ctx)
 }
 
 /**
- * free sorted array
+ * free index array
  * @param ctx context
  */
 inline void
-free_sorted_array(sorted_array_context_t *ctx)
+free_index_array(index_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start free");
 
