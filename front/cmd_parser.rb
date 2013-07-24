@@ -32,18 +32,40 @@ def parse_cmd cmd
 end
 
 '''
-simple DFA with :s (start), :n (not), :a (and / or), :c (cmd), :arg (args)
+simple DFA with :s (start), :n (not), :a (and / or / bracket start), :c (cmd), :arg (args), :e (bracket end)
 :s -> :a, :n, :c
 :a -> :n, :c
 :n -> :c
 :c -> :c, :arg
 :arg -> :c, :arg
+:e -> exit
 '''
 def cmd_validation cmds
   state = :s
   cmds.each do |cmd|
-    return false, cmd if %w(and or).include? cmd and state != :s
-    return false, cmd if cmd == "not" and (state != :s or state != :a)
+    return false, cmd if state == :e
+    if cmd[0] == "(" or %w(and or).include? cmd
+      return false, cmd if state != :s
+      state = :a
+      if cmd[0] == "("
+        while cmd[0] == "("
+          cmd = cmd[1..-1]
+        end
+      else
+        next
+      end
+    end
+
+    if cmd == "not"
+      return false, cmd if state != :s or state != :a
+      state = :n
+      next
+    end
+
+    if cmd[-1] == ")"
+      state = :e
+      next
+    end
 
     if CMD_LIST.include? cmd
       state = :c
@@ -56,6 +78,13 @@ def cmd_validation cmds
 end
 
 def send cmds, socket
+  br_num = 0
+  cmds.each do |cmd|
+    br_num += cmd[:cmd][0].count("(")
+    br_num -= cmd[:cmd][-1].count(")")
+  end
+  puts "unmatched bracket" if br_num != 0
+
   cmds.each do |cmd|
     is_valid, error_at = cmd_validation cmd[:cmd]
     puts "#{error_at}: not valid command" unless is_valid
