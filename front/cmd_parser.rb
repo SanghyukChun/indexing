@@ -13,17 +13,9 @@ LIST = [
   'help', 'quit', 'exit'
 ].sort
 
-def err type=nil
-  if type == :arg
-    puts "Usage: #{File.basename($0)} [options]"
-    exit(-1)
-  end
-  puts "unexpected command"
-  return -1
-end
-
-def init_cmd
-  return {:operation => nil, :not => false, :cmd => [], :arg =>nil}
+def usage
+  puts "Usage: #{File.basename($0)} -h [host] -p [port]"
+  exit(-1)
 end
 
 def parse_cmd cmd
@@ -69,7 +61,7 @@ port, host = nil
 port = ARGV[ARGV.index("-p")+1] if ARGV.include? "-p"
 host = ARGV[ARGV.index("-h")+1] if ARGV.include? "-h"
 
-err(:arg) if port.nil? or host.nil?
+usage if port.nil? or host.nil?
 
 socket = Socket.new( AF_INET, SOCK_STREAM, IPPROTO_TCP )
 sockaddr = Socket.pack_sockaddr_in( port, host )
@@ -104,6 +96,6 @@ begin
     end
   end
 rescue Interrupt => e
-  puts "interrput occured. exit flosis query"
+  puts "interrput occured. exit flosis query client"
 end
 socket.close
