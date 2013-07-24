@@ -2,16 +2,12 @@ require 'readline'
 require 'socket'
 include Socket::Constants
 
-LIST = [
-  'host', 'shost', 'dhost', 'src host', 'dst host',
-  'ether src', 'ether dst', 'ether host', 'gateway',
-  'net' 'snet', 'dnet', 'src net', 'dst net',
-  'port', 'sport', 'dport', 'src port', 'dst port',
-  'less', 'greater',
-  'ip proto',
+CMD_LIST = %w(host shost dhost src dst ether gateway net snet dnet mask port sport dport less greater ip proto)
+
+LIST = (CMD_LIST + [
   'and', 'or', 'not',
   'help', 'quit', 'exit'
-].sort
+]).sort
 
 def usage
   puts "Usage: #{File.basename($0)} -h [host] -p [port]"
@@ -35,8 +31,34 @@ def parse_cmd cmd
   return cmds
 end
 
+'''
+simple DFA with :s (start), :n (not), :a (and / or), :c (cmd), :arg (args)
+:s -> :a, :n, :c
+:a -> :n, :c
+:n -> :c
+:c -> :c, :arg
+:arg -> :c, :arg
+'''
+def cmd_validation cmds
+  state = :s
+  cmds.each do |cmd|
+    return false, cmd if %w(and or).include? cmd and state != :s
+    return false, cmd if cmd == "not" and (state != :s or state != :a)
+
+    if CMD_LIST.include? cmd
+      state = :c
+    else
+      return false, cmd if state != :c and state != :arg
+      state = :arg
+    end
+  end
+  return true, nil
+end
+
 def send cmds, socket
   cmds.each do |cmd|
+    is_valid, error_at = cmd_validation cmd[:cmd]
+    puts "#{error_at}: not valid command" unless is_valid
     socket.write(cmd)
   end
 end
