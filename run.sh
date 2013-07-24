@@ -3,7 +3,7 @@
 
 rm test_result.txt
 touch test_result.txt
-for i in 10000 20000 30000 40000 50000 60000 70000 80000 90000 100000 1000000
+for i in 14510025 7780738 4036624 2056977 1038436 704556 30385
 do
 	./index $i | grep "elapsed" >> test_result.txt
 	echo "done $i"
