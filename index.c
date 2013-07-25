@@ -4,6 +4,7 @@
 
 #include "index.h"
 
+#define PRINT_TIME
 /*#define ARRAY_SIZE 32768*/
 
 int ARRAY_SIZE;
@@ -337,17 +338,21 @@ static inline void
 sort_array(index_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start sorting");
+	#ifdef PRINT_TIME
 	struct timeval t1,t2;
 	gettimeofday(&t1, NULL);
+	#endif
 
 	quick_sort(ctx->saddr, 0, ctx->last_idx-1);
 	quick_sort(ctx->daddr, 0, ctx->last_idx-1);
 	quick_sort(ctx->sport, 0, ctx->last_idx-1);
 	quick_sort(ctx->dport, 0, ctx->last_idx-1);
+
+	#ifdef PRINT_TIME
 	gettimeofday(&t2, NULL);
-	
 	double elapsed = (double)(t2.tv_sec - t1.tv_sec) + (double)(t2.tv_usec - t1.tv_usec) * 1e-6;
 	printf("elapsed: %f\n", elapsed);
+	#endif
 	LOG_MESSAGE("=== close sorting");
 }
 
