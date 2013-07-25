@@ -39,6 +39,10 @@ init_index_array(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 	ARRAY_SIZE = size;
 	LOG_MESSAGE("=== open init index array");
 
+	// XXX if you want to initialize only specific type, you can use TYPE.
+	// type = TYPE_SADDR | TYPE_DADDR | .....
+	// ex) if (type | TYPE_SADDR) {init_array(&ctx->saddr);}
+	
 	init_array(&ctx->saddr);
 	init_array(&ctx->daddr);
 	init_array(&ctx->sport);
@@ -128,12 +132,13 @@ search_backward(index_array_node_t *head, int idx, unsigned int data) {
 	if (idx == -1)
 		return -1;
 
-	while ((&head[idx])->value != data) {
+	while ((&head[idx])->value == data) {
+		printf("idx %d, %u\n", idx, (&head[idx])->value);
 		idx --;
 		if (idx == -1)
-			return 0;
+			break;
 	}
-	return idx;
+	return idx + 1;
 }
 
 static inline int
@@ -141,12 +146,12 @@ search_forward(index_array_node_t *head, int idx, unsigned int data) {
 	if (idx == -1)
 		return -1;
 
-	while ((&head[idx])->value != data) {
+	while ((&head[idx])->value == data) {
 		idx ++;
 		if (idx == ARRAY_SIZE)
-			return ARRAY_SIZE-1;
+			break;
 	}
-	return idx;
+	return idx - 1;
 }
 
 /**
@@ -163,7 +168,7 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 	if (type | TYPE_SADDR){
 		if (search_from_bloom_filter(ctx->bctx, TYPE_SADDR, data)) {
 			res = binary_search(ctx->saddr, 0, ARRAY_SIZE-1, data);
-			start = search_backward(ctx->daddr, res, data);	
+			start = search_backward(ctx->saddr, res, data);	
 			end = search_forward(ctx->saddr, res, data);
 		}
 	}
@@ -171,7 +176,7 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 		if (search_from_bloom_filter(ctx->bctx, TYPE_DADDR, data)) {
 			res = binary_search(ctx->daddr, 0, ARRAY_SIZE-1, data);
 			start = search_backward(ctx->daddr, res, data);
-			end = search_forward(ctx->saddr, res, data);
+			end = search_forward(ctx->daddr, res, data);
 		}
 	}
 	else if (type | TYPE_SPORT){
