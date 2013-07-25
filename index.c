@@ -4,7 +4,6 @@
 
 #include "index.h"
 
-#define PRINT_TIME
 /*#define ARRAY_SIZE 32768*/
 
 int ARRAY_SIZE;
@@ -340,6 +339,7 @@ sort_array(index_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start sorting");
 	#ifdef PRINT_TIME
+	// PRINT_TIME is in util.h
 	struct timeval t1,t2;
 	gettimeofday(&t1, NULL);
 	#endif

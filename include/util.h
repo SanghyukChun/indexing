@@ -1,7 +1,8 @@
 #ifndef _UTILH_
 #define _UTILH_
 
-#define LOG 0
+#define PRINT_TIME
+#define LOG
 #ifdef LOG
 #define LOG_MESSAGE(msg) printf("%s\n", msg)
 #else
