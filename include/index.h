@@ -24,8 +24,8 @@ typedef struct index_array_context
 
 inline void init_index_array(index_array_context_t *ctx, bloom_filter_context_t *bctx, int size);
 inline int insert_into_index_array(index_array_context_t *ctx, FlowMeta *meta);
-inline void search_from_index_array(index_array_context_t *ctx, int type, unsigned int data);
-inline void search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int start, unsigned int end);
+inline int* search_from_index_array(index_array_context_t *ctx, int type, unsigned int data);
+inline int* search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int start, unsigned int end);
 inline void print_index_array(index_array_context_t *ctx, int type);
 inline void write_index_array(index_array_context_t *ctx);
 inline void clean_index_array(index_array_context_t *ctx);

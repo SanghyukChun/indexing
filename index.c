@@ -159,92 +159,104 @@ search_forward(index_array_node_t *head, int idx, unsigned int data) {
  * @param ctx  context
  * @param data data to find
  */
-inline void
+inline int *
 search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 {
-	int res = -1;
+	int ret[2];
+	int *ptr;
+
+	ptr = ret;
+
+	int idx = -1;
 	int start = 0;
 	int end = ARRAY_SIZE-1;
 	if (type | TYPE_SADDR){
 		if (search_from_bloom_filter(ctx->bctx, TYPE_SADDR, data)) {
-			res = binary_search(ctx->saddr, 0, ARRAY_SIZE-1, data);
-			start = search_backward(ctx->saddr, res, data);	
-			end = search_forward(ctx->saddr, res, data);
+			idx = binary_search(ctx->saddr, 0, ARRAY_SIZE-1, data);
+			start = search_backward(ctx->saddr, idx, data);	
+			end = search_forward(ctx->saddr, idx, data);
 		}
 	}
 	else if (type | TYPE_DADDR){
 		if (search_from_bloom_filter(ctx->bctx, TYPE_DADDR, data)) {
-			res = binary_search(ctx->daddr, 0, ARRAY_SIZE-1, data);
-			start = search_backward(ctx->daddr, res, data);
-			end = search_forward(ctx->daddr, res, data);
+			idx = binary_search(ctx->daddr, 0, ARRAY_SIZE-1, data);
+			start = search_backward(ctx->daddr, idx, data);
+			end = search_forward(ctx->daddr, idx, data);
 		}
 	}
 	else if (type | TYPE_SPORT){
 		if (search_from_bloom_filter(ctx->bctx, TYPE_SPORT, data)){
-			res = binary_search(ctx->sport, 0, ARRAY_SIZE-1, data);
-			start = search_backward(ctx->sport, res, data);
-			end = search_forward(ctx->sport, res, data);
+			idx = binary_search(ctx->sport, 0, ARRAY_SIZE-1, data);
+			start = search_backward(ctx->sport, idx, data);
+			end = search_forward(ctx->sport, idx, data);
 		}
 	}
 	else if (type | TYPE_DPORT){
 		if (search_from_bloom_filter(ctx->bctx, TYPE_DPORT, data)){
-			res = binary_search(ctx->dport, 0, ARRAY_SIZE-1, data);
-			start = search_backward(ctx->dport, res, data);
-			end = search_forward(ctx->dport, res, data);
+			idx = binary_search(ctx->dport, 0, ARRAY_SIZE-1, data);
+			start = search_backward(ctx->dport, idx, data);
+			end = search_forward(ctx->dport, idx, data);
 		}
 	}
 	
-	if (res == -1) {
-		printf("%u do not exist in the array\n", data);
-		return;		
+	if (idx == -1) {
+		return NULL;	
 	}
 
-	// TODO return start, end
-	printf("%u is exist in array idx: %d to %d\n", data, start, end);
+	ret[0] = start;
+	ret[1] = end;
+
+	return ptr;
 }
 
-inline void
+inline int *
 search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int start, unsigned int end)
 {
-	int s_res, s_start, e_res, e_end;
+	int s_idx, s_start, e_idx, e_end;
+	int ret[2];
+	int *ptr;
+
+	ptr = ret;
 	
-	s_res = -1;
-	e_res = -1;
+	s_idx = -1;
+	e_idx = -1;
 
 	s_start = 0;
 	e_end = ARRAY_SIZE;
 
 	if (type | TYPE_SADDR) {
-		s_res   = binary_search  (ctx->saddr, 0, ARRAY_SIZE-1, start);
-		s_start = search_backward(ctx->saddr, s_res, start);	
+		s_idx   = binary_search  (ctx->saddr, 0, ARRAY_SIZE-1, start);
+		s_start = search_backward(ctx->saddr, s_idx, start);	
 		
-		e_res   = binary_search  (ctx->saddr, 0, ARRAY_SIZE-1, end);
-		e_end   = search_forward (ctx->saddr, e_res, end);
+		e_idx   = binary_search  (ctx->saddr, 0, ARRAY_SIZE-1, end);
+		e_end   = search_forward (ctx->saddr, e_idx, end);
 	}
 	else if (type | TYPE_DADDR) {
-		s_res   = binary_search  (ctx->daddr, 0, ARRAY_SIZE-1, start);
-		s_start = search_backward(ctx->daddr, s_res, start);
+		s_idx   = binary_search  (ctx->daddr, 0, ARRAY_SIZE-1, start);
+		s_start = search_backward(ctx->daddr, s_idx, start);
 		
-		e_res   = binary_search  (ctx->daddr, 0, ARRAY_SIZE-1, end);
-		e_end   = search_forward (ctx->daddr, e_res, end);
+		e_idx   = binary_search  (ctx->daddr, 0, ARRAY_SIZE-1, end);
+		e_end   = search_forward (ctx->daddr, e_idx, end);
 	}
 	else if (type | TYPE_SPORT) {
-		s_res   = binary_search  (ctx->sport, 0, ARRAY_SIZE-1, start);
-		s_start = search_backward(ctx->sport, s_res, start);
+		s_idx   = binary_search  (ctx->sport, 0, ARRAY_SIZE-1, start);
+		s_start = search_backward(ctx->sport, s_idx, start);
 		
-		e_res   = binary_search  (ctx->sport, 0, ARRAY_SIZE-1, start);
-		e_end   = search_forward (ctx->sport, e_res, end);
+		e_idx   = binary_search  (ctx->sport, 0, ARRAY_SIZE-1, start);
+		e_end   = search_forward (ctx->sport, e_idx, end);
 	}
 	else if (type | TYPE_DPORT) {
-		s_res   = binary_search  (ctx->dport, 0, ARRAY_SIZE-1, start);
-		s_start = search_backward(ctx->dport, s_res, start);
+		s_idx   = binary_search  (ctx->dport, 0, ARRAY_SIZE-1, start);
+		s_start = search_backward(ctx->dport, s_idx, start);
 		
-		e_res   = binary_search  (ctx->dport, 0, ARRAY_SIZE-1, start);
-		e_end   = search_forward (ctx->dport, e_res, end);
+		e_idx   = binary_search  (ctx->dport, 0, ARRAY_SIZE-1, start);
+		e_end   = search_forward (ctx->dport, e_idx, end);
 	}
 
-	// TODO return s_start, e_end
-	printf("%d to %d\n", s_start, e_end);
+	ret[0] = s_start;
+	ret[1] = e_end;
+
+	return ptr;
 }
 
 /**
