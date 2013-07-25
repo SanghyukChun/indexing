@@ -194,7 +194,8 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 		return;		
 	}
 
-	printf("%u is exist in array idx: %d\n", data, res);
+	// TODO return start, end
+	printf("%u is exist in array idx: %d to %d\n", data, start, end);
 }
 
 inline void
