@@ -4,6 +4,7 @@
 
 #include "util.h"
 #include "bloom_filter.h"
+#include "qsort.h"
 
 typedef struct index_array_node
 {

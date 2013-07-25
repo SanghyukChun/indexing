@@ -6,6 +6,8 @@
 
 /*#define ARRAY_SIZE 32768*/
 
+#define COMPARE_VALUE(a,b) ( (a)->value < (a)->value )
+
 int ARRAY_SIZE;
 static inline void sort_array(index_array_context_t *ctx);
 static inline int binary_search(index_array_node_t *head, int start, int end, unsigned int data);
@@ -344,10 +346,17 @@ sort_array(index_array_context_t *ctx)
 	gettimeofday(&t1, NULL);
 	#endif
 
+	QSORT(struct index_array_node, ctx->saddr, ctx->last_idx, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->daddr, ctx->last_idx, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->sport, ctx->last_idx, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->dport, ctx->last_idx, COMPARE_VALUE);
+
+	/*
 	quick_sort(ctx->saddr, 0, ctx->last_idx-1);
 	quick_sort(ctx->daddr, 0, ctx->last_idx-1);
 	quick_sort(ctx->sport, 0, ctx->last_idx-1);
 	quick_sort(ctx->dport, 0, ctx->last_idx-1);
+	*/
 
 	#ifdef PRINT_TIME
 	gettimeofday(&t2, NULL);
