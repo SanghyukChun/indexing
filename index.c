@@ -56,6 +56,7 @@ init_index_array(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 	ctx->last_idx = 0;
 
 	LOG_MESSAGE("=== close init index array");
+	return;
 
 	fail:
 		fprintf(stderr, "fail to initialize array\n");
