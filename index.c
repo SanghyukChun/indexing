@@ -6,8 +6,6 @@
 
 /*#define ARRAY_SIZE 32768*/
 
-#define COMPARE_VALUE(a,b) ( (a)->value < (a)->value )
-
 int ARRAY_SIZE;
 static inline void sort_array(index_array_context_t *ctx);
 static inline int binary_search(index_array_node_t *head, int start, int end, unsigned int data);
@@ -278,61 +276,6 @@ search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int
 }
 
 /**
- * swap node a and b
- * @param a [description]
- * @param b [description]
- */
-static inline void
-swap(index_array_node_t *a, index_array_node_t *b)
-{
-	index_array_node_t temp;
-	temp = *a; *a = *b;	*b = temp;
-}
-
-/**
- * parition sorting algorithm for quick sort
- * @param  head node structure which indicate first of index array
- * @param  l    [description]
- * @param  r    [description]
- * @return      [description]
- */
-static inline int
-partition(index_array_node_t *head, int l, int r)
-{
-	unsigned int pivot, i, j;
-	pivot = (&head[l])->value;
-	i = l; j = r+1;
-
-	while(1)
-	{
-		do ++i; while( (&head[i])->value <= pivot && i <= r );
-		do --j; while( (&head[j])->value > pivot );
-		if (i >= j) break;
-		swap(&head[i], &head[j]);
-	}
-	swap(&head[l], &head[j]);
-	return j;
-}
-
-/**
- * do quick sort
- * @param head node structure which indicate first of index array
- * @param l    [description]
- * @param r    [description]
- */
-static inline void
-quick_sort(index_array_node_t *head, int l, int r)
-{
-	int j;
-	if (l < r)
-	{
-		j = partition(head, l, r);
-		quick_sort(head, l, j-1);
-		quick_sort(head, j+1, r);
-	}
-}
-
-/**
  * sort array by quick sort function
  * @param ctx context
  */
@@ -350,13 +293,6 @@ sort_array(index_array_context_t *ctx)
 	QSORT(struct index_array_node, ctx->daddr, ctx->last_idx, COMPARE_VALUE);
 	QSORT(struct index_array_node, ctx->sport, ctx->last_idx, COMPARE_VALUE);
 	QSORT(struct index_array_node, ctx->dport, ctx->last_idx, COMPARE_VALUE);
-
-	/*
-	quick_sort(ctx->saddr, 0, ctx->last_idx-1);
-	quick_sort(ctx->daddr, 0, ctx->last_idx-1);
-	quick_sort(ctx->sport, 0, ctx->last_idx-1);
-	quick_sort(ctx->dport, 0, ctx->last_idx-1);
-	*/
 
 	#ifdef PRINT_TIME
 	gettimeofday(&t2, NULL);
