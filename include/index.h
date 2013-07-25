@@ -5,7 +5,7 @@
 #include "util.h"
 #include "bloom_filter.h"
 #include "qsort.h"
-#define COMPARE_VALUE(a,b) ( (a)->value < (a)->value )
+#define COMPARE_VALUE(a,b) ( (a)->value < (b)->value )
 
 typedef struct index_array_node
 {
