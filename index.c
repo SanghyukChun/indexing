@@ -201,52 +201,45 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 inline void
 search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int start, unsigned int end)
 {
-	int s_res, s_start, s_end, e_res, e_start, e_end;
+	int s_res, s_start, e_res, e_end;
 	
 	s_res = -1;
-	s_start = 0;
-	s_end = ARRAY_SIZE;
-
 	e_res = -1;
-	e_start = 0;
+
+	s_start = 0;
 	e_end = ARRAY_SIZE;
 
 	if (type | TYPE_SADDR) {
 		s_res   = binary_search  (ctx->saddr, 0, ARRAY_SIZE-1, start);
 		s_start = search_backward(ctx->saddr, s_res, start);	
-		s_end   = search_forward (ctx->saddr, s_res, start);
 		
 		e_res   = binary_search  (ctx->saddr, 0, ARRAY_SIZE-1, end);
-		e_start = search_backward(ctx->saddr, e_res, end);
 		e_end   = search_forward (ctx->saddr, e_res, end);
 	}
 	else if (type | TYPE_DADDR) {
 		s_res   = binary_search  (ctx->daddr, 0, ARRAY_SIZE-1, start);
 		s_start = search_backward(ctx->daddr, s_res, start);
-		s_end   = search_forward (ctx->daddr, s_res, start);
 		
 		e_res   = binary_search  (ctx->daddr, 0, ARRAY_SIZE-1, end);
-		e_start = search_backward(ctx->daddr, e_res, end);
 		e_end   = search_forward (ctx->daddr, e_res, end);
 	}
 	else if (type | TYPE_SPORT) {
 		s_res   = binary_search  (ctx->sport, 0, ARRAY_SIZE-1, start);
 		s_start = search_backward(ctx->sport, s_res, start);
-		s_end   = search_forward (ctx->sport, s_res, end);
 		
 		e_res   = binary_search  (ctx->sport, 0, ARRAY_SIZE-1, start);
-		e_start = search_backward(ctx->sport, e_res, end);
 		e_end   = search_forward (ctx->sport, e_res, end);
 	}
 	else if (type | TYPE_DPORT) {
 		s_res   = binary_search  (ctx->dport, 0, ARRAY_SIZE-1, start);
 		s_start = search_backward(ctx->dport, s_res, start);
-		s_end   = search_forward (ctx->dport, s_res, end);
 		
 		e_res   = binary_search  (ctx->dport, 0, ARRAY_SIZE-1, start);
-		e_start = search_backward(ctx->dport, e_res, end);
 		e_end   = search_forward (ctx->dport, e_res, end);
 	}
+
+	// TODO return s_start, e_end
+	printf("%d to %d\n", s_start, e_end);
 }
 
 /**
