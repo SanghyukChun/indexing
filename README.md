@@ -1,6 +1,6 @@
 Indexing
 ========
-This project is sample indexing architechure for flosis
+This project is sample indexing architechure for flosis. Repository is https://github.com/SanghyukChun/indexing
 Index has two layers: bloom filter and linked list with quick sort
 
 After make, you can get binary named 'index'
@@ -24,7 +24,7 @@ init_index_array(ctx, bctx, size);
 
 // meta is FlowMeta object
 // insert meta into index array
-insert_into_index_array(ctx, meta)
+insert_into_index_array(ctx, meta);
 ```
 
 search example:
@@ -32,7 +32,7 @@ search example:
 // you should clearfy which attribute do you look for
 // attribute is defined as enum (TYPE_SADDR, TYPE_DADDR, TYPE_SPORT, TYPE_DPORT)
 // data is unsigned int value which you want to search in the index array
-search_from_index_array(ctx, TYPE_SADDR, data)
+search_from_index_array(ctx, TYPE_SADDR, data);
 ```
 
 ## bloom_filter.c
@@ -62,8 +62,8 @@ get_hashes(unsigned int hash[], unsigned char *data)
 ## index.c
 index.c has init, insert, search, clean and free functions.
 Before use index.c you should initialize index_array_context_t *ctx. If you do not need to set index array size by argument, define it as macro.
-insert returns 1 if array is fully filled after insert given input. If array is fully filled, you should sort array, write it in SSD and clean array. Now clean_array is deleted from insert function. Array is sorted using quick sort. It is now implemented in index.c. I will change this function using qsort.h
-Seach function first look up bloom filter first and search data using binary search if it may be has data.
+insert returns 1 if array is fully filled after insert given input. If array is fully filled, you should sort array, write it in SSD and clean array. Now clean_array is deleted from insert function. Array is sorted using quick sort. It is implemented by qsort.h (http://www.corpit.ru/mjt/qsort/qsort.h)
+Seach function first look up bloom filter first and search data using binary search if it may be has data. I returns start and end index of given data because array may can have same index.
 
 
 
@@ -71,7 +71,4 @@ Seach function first look up bloom filter first and search data using binary sea
 
 
 ## Remaing Works
-- Range query with start value and end value (return start idx and end idx in index array)
-- Change return value of search idx as start idx and end idx (implement looking forward & backward)
-- Apply quick sort using qsort.h
 - Front client and server
