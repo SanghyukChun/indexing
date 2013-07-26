@@ -34,13 +34,12 @@ index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 			info->dport = rand();
 
 			value = info->saddr;
-			//TODO generate rand data iteratively
-			/*printf("meta: %u\n", meta->flowinfo.saddr);*/
 			if (insert_into_index_array(ctx, meta))
 				done = true;
 		}
-		print_index_array(ctx, TYPE_SADDR);
-		search_from_index_array(ctx, TYPE_SADDR, value);
+		/*print_index_array(ctx, TYPE_SADDR);*/
+		int *search_result = search_from_index_array(ctx, TYPE_SADDR, value);
+		printf("s: %d e: %d\n", search_result[0], search_result[1]);
 
 		clean_index_array(ctx);
 	}

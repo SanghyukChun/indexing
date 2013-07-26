@@ -140,7 +140,7 @@ search_backward(index_array_node_t *head, int idx, unsigned int data) {
 	if (idx == -1)
 		return -1;
 
-	while ((&head[idx])->value == data || idx > -1)
+	while ( ((&head[idx])->value == data) && (idx > -1) )
 		idx --;
 
 	return idx + 1;
@@ -151,7 +151,7 @@ search_forward(index_array_node_t *head, int idx, unsigned int data) {
 	if (idx == -1)
 		return -1;
 
-	while ((&head[idx])->value == data || idx < ARRAY_SIZE)
+	while ( ((&head[idx])->value == data) && (idx < ARRAY_SIZE) )
 		idx ++;
 
 	return idx - 1;
@@ -165,8 +165,7 @@ search_forward(index_array_node_t *head, int idx, unsigned int data) {
 inline int *
 search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 {
-	int ret[2];
-	int *ptr;
+	static int ret[2];
 
 	int idx = -1;
 	int start = 0;
@@ -212,17 +211,14 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 	ret[0] = start;
 	ret[1] = end;
 
-	ptr = ret;
-
-	return ptr;
+	return ret;
 }
 
 inline int *
 search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int start, unsigned int end)
 {
 	int s_idx, s_start, e_idx, e_end;
-	int ret[2];
-	int *ptr;
+	static int ret[2];
 	
 	s_idx = -1;
 	e_idx = -1;
@@ -270,9 +266,7 @@ search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int
 	ret[0] = s_start;
 	ret[1] = e_end;
 
-	ptr = ret;
-
-	return ptr;
+	return ret;
 }
 
 /**
