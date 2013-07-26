@@ -103,6 +103,12 @@ bpf_loop(bpf_context_t *ctx, char buf[])
   printf("%s\n", buf);
 }
 
+static void
+parse_bpf_query(bpf_context_t *ctx, char buf[])
+{
+  ctx->bpf_query = buf;
+}
+
 /*----------------------------------------------------*/
 int 
 main(const int argc, const char **argv)
@@ -122,8 +128,8 @@ main(const int argc, const char **argv)
     while (len = read(c, buf, sizeof(buf)-1)) {
       if (len <= 0) { perror("Error: read() failed\n"); exit(-1); }
 
-      char *bpf_query = buf;
-      if (compile_pcap(ctx, bpf_query) < 0) {
+      parse_bpf_query(ctx, buf);
+      if (compile_pcap(ctx, ctx->bpf_query) < 0) {
         fprintf(stderr, "Cannot compile BPF filter\n");
         write(c, "error", 5); //TODO edit
         break;
@@ -136,7 +142,6 @@ main(const int argc, const char **argv)
       bpf_loop(ctx, buf);
 
     }
-    printf("close\n");
     close(c);
   }
   perror("Error:accept() failed");
