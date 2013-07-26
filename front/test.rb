@@ -21,11 +21,8 @@ cmds = {}
 		abort "only integer is available" unless line.int?
 		abort "invalid port" unless (0..65535).include? line.to_i
 		cmd = line.to_i
-	when :bpf
-		abort "invalid query" unless line.valid_query?
-		cmd = line
 	else
-		abort "wrong options"
+		cmd = line
 	end
 	cmds[opt.to_sym] = cmd
 end
