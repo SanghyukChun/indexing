@@ -1,9 +1,11 @@
 require './utils.rb'
 
-puts "==========================================="
-puts "========    flosis query client    ========"
-puts "==========================================="
-puts ""
+puts <<WELCOME
+===========================================
+========    flosis query client    ========
+===========================================
+
+WELCOME
 
 cmds = {}
 %w(stime etime src_ip dst_ip src_port dst_port bpf).each do |opt|
