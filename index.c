@@ -253,6 +253,12 @@ binary_search_max(index_array_node_t *head, int start, int end, unsigned int dat
 inline int *
 search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int start, unsigned int end)
 {
+	if (start > end) {
+		return NULL;
+	} else if (start == end) {
+		return search_from_index_array(ctx, type, start);
+	}
+
 	int s_start, e_end;
 	static int ret[2];
 
