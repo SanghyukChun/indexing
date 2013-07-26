@@ -35,6 +35,7 @@ end
 socket.write(cmds.to_arg)
 
 while (response = socket.recv MAX_LINE)
+	abort "error" if response == "error" #TODO edit
 	print response
 end
 rescue Interrupt

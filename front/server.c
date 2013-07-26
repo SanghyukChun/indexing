@@ -78,13 +78,14 @@ init_bpf_context(bpf_context_t *ctx)
   ctx->bpf = bpf;
 }
 
-static void
-init_pcap(bpf_context_t *ctx)
+static int
+compile_pcap(bpf_context_t *ctx, char *bpf_query)
 {
   bpf_u_int32 bpfnet = 0;
-  if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, ctx->bpf, FILTER_RULE, 0, bpfnet)) {
-    fprintf(stderr, "Cannot compile BPF filter\n");
+  if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, ctx->bpf, bpf_query, 0, bpfnet)) {
+    return -1;
   }
+  return 0;
 }
 
 static void
@@ -114,7 +115,6 @@ main(const int argc, const char **argv)
   /* initialize bpf */
   bpf_context_t *ctx = (bpf_context_t *)malloc(sizeof(bpf_context_t));
   init_bpf_context(ctx);
-  init_pcap(ctx);
 
   /* accept a connection and handle it in a forked process */
   while ((c = accept(s, NULL, NULL)) >= 0) {
@@ -122,6 +122,12 @@ main(const int argc, const char **argv)
     while (len = read(c, buf, sizeof(buf)-1)) {
       if (len <= 0) { perror("Error: read() failed\n"); exit(-1); }
 
+      char *bpf_query = buf;
+      if (compile_pcap(ctx, bpf_query) < 0) {
+        fprintf(stderr, "Cannot compile BPF filter\n");
+        write(c, "error", 5); //TODO edit
+        break;
+      }
 
       write(c, buf, len);
       buf[len] = 0;
@@ -130,6 +136,7 @@ main(const int argc, const char **argv)
       bpf_loop(ctx, buf);
 
     }
+    printf("close\n");
     close(c);
   }
   perror("Error:accept() failed");
