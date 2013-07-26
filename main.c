@@ -38,8 +38,10 @@ index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 				done = true;
 		}
 		/*print_index_array(ctx, TYPE_SADDR);*/
-		int *search_result = search_from_index_array(ctx, TYPE_SADDR, value);
-		printf("s: %d e: %d\n", search_result[0], search_result[1]);
+		/*int *search_result = search_from_index_array(ctx, TYPE_SADDR, value);*/
+		int *search_result = search_range_from_index_array(ctx, TYPE_SADDR, 10000000, 1000000000);
+		if (search_result != NULL)
+			printf("s: %d e: %d\n", search_result[0], search_result[1]);
 
 		clean_index_array(ctx);
 	}

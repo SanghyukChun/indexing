@@ -169,6 +169,7 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 
 	int idx = -1;
 	int start = 0;
+	// TODO ARRAY_SIZE - 1 => ctx->last_idx - 1
 	int end = ARRAY_SIZE-1;
 
 	switch (type) {
@@ -214,6 +215,42 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 	return ret;
 }
 
+static inline int
+binary_search_min(index_array_node_t *head, int start, int end, unsigned int data)
+{
+	if (start > end)
+		return start;
+
+	int mid = (start + end) / 2;
+	unsigned int mid_val = (&head[mid])->value;
+
+	if (mid_val > data) {
+		return binary_search_min(head, start, mid-1, data);
+	} else if (mid_val < data) {
+		return binary_search_min(head, mid+1, end, data);
+	}
+
+	return mid;
+}
+
+static inline int
+binary_search_max(index_array_node_t *head, int start, int end, unsigned int data)
+{
+	if (start > end)
+		return end;
+
+	int mid = (start + end) / 2;
+	unsigned int mid_val = (&head[mid])->value;
+
+	if (mid_val > data) {
+		return binary_search_max(head, start, mid-1, data);
+	} else if (mid_val < data) {
+		return binary_search_max(head, mid+1, end, data);
+	}
+
+	return mid;
+}
+
 inline int *
 search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int start, unsigned int end)
 {
@@ -228,39 +265,26 @@ search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int
 
 	switch (type) {
 		case TYPE_SADDR:
-			s_idx   = binary_search  (ctx->saddr, 0, ARRAY_SIZE-1, start);
-			s_start = search_backward(ctx->saddr, s_idx, start);	
-
-			e_idx   = binary_search  (ctx->saddr, 0, ARRAY_SIZE-1, end);
-			e_end   = search_forward (ctx->saddr, e_idx, end);
+			s_start = binary_search_min(ctx->saddr, 0, ARRAY_SIZE-1, start);
+			e_end   = binary_search_max(ctx->saddr, 0, ARRAY_SIZE-1, end);
 			break;
 		case TYPE_DADDR:
-			s_idx   = binary_search  (ctx->daddr, 0, ARRAY_SIZE-1, start);
-			s_start = search_backward(ctx->daddr, s_idx, start);
-
-			e_idx   = binary_search  (ctx->daddr, 0, ARRAY_SIZE-1, end);
-			e_end   = search_forward (ctx->daddr, e_idx, end);
+			s_start = binary_search_min(ctx->daddr, 0, ARRAY_SIZE-1, start);
+			e_end   = binary_search_max(ctx->daddr, 0, ARRAY_SIZE-1, end);
 			break;
 		case TYPE_SPORT:
-			s_idx   = binary_search  (ctx->sport, 0, ARRAY_SIZE-1, start);
-			s_start = search_backward(ctx->sport, s_idx, start);
-
-			e_idx   = binary_search  (ctx->sport, 0, ARRAY_SIZE-1, start);
-			e_end   = search_forward (ctx->sport, e_idx, end);
+			s_start = binary_search_min(ctx->sport, 0, ARRAY_SIZE-1, start);
+			e_end   = binary_search_max(ctx->sport, 0, ARRAY_SIZE-1, end);
 			break;
 		case TYPE_DPORT:
-			s_idx   = binary_search  (ctx->dport, 0, ARRAY_SIZE-1, start);
-			s_start = search_backward(ctx->dport, s_idx, start);
-
-			e_idx   = binary_search  (ctx->dport, 0, ARRAY_SIZE-1, start);
-			e_end   = search_forward (ctx->dport, e_idx, end);
+			s_start = binary_search_min(ctx->dport, 0, ARRAY_SIZE-1, start);
+			e_end   = binary_search_max(ctx->dport, 0, ARRAY_SIZE-1, end);
 			break;
 		default:
 			printf("Unknown type\n");
 			return NULL;
 	}
-
-	if (s_idx == -1 || e_idx == -1)
+	if (s_start > e_end)
 		return NULL;
 
 	ret[0] = s_start;
