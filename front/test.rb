@@ -1,5 +1,9 @@
 require './utils.rb'
 
+abort help_message unless ARGV.index("--help").nil?
+
+socket = connect_server
+
 puts <<WELCOME
 ===========================================
 ========    flosis query client    ========
@@ -27,4 +31,4 @@ cmds = {}
 	cmds[opt.to_sym] = cmd
 end
 
-puts cmds.to_s
+socket.write(cmds.to_s)
