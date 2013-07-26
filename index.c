@@ -253,11 +253,8 @@ binary_search_max(index_array_node_t *head, int start, int end, unsigned int dat
 inline int *
 search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int start, unsigned int end)
 {
-	int s_idx, s_start, e_idx, e_end;
+	int s_start, e_end;
 	static int ret[2];
-	
-	s_idx = -1;
-	e_idx = -1;
 
 	s_start = 0;
 	e_end = ARRAY_SIZE;
