@@ -32,5 +32,7 @@ cmds = {}
 end
 
 socket.write(cmds.to_s)
-response = socket.recv MAX_LINE
-puts response
+
+while (response = socket.recv MAX_LINE)
+	print response
+end
