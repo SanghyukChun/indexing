@@ -167,36 +167,35 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 {
 	static int ret[2];
 
-	int idx = -1;
-	int start = 0;
-	// TODO ARRAY_SIZE - 1 => ctx->last_idx - 1
-	int end = ARRAY_SIZE-1;
+	int idx   = -1;
+	int start = -1;
+	int end   = -1;
 
 	switch (type) {
 		case TYPE_SADDR:
 			if (search_from_bloom_filter(ctx->bctx, TYPE_SADDR, data)) {
-				idx   = binary_search  (ctx->saddr, 0, ARRAY_SIZE-1, data);
+				idx   = binary_search  (ctx->saddr, 0, ctx->last_idx - 1, data);
 				start = search_backward(ctx->saddr, idx, data);	
 				end   = search_forward (ctx->saddr, idx, data);
 			}
 			break;
 		case TYPE_DADDR:
 			if (search_from_bloom_filter(ctx->bctx, TYPE_DADDR, data)) {
-				idx   = binary_search  (ctx->daddr, 0, ARRAY_SIZE-1, data);
+				idx   = binary_search  (ctx->daddr, 0, ctx->last_idx - 1, data);
 				start = search_backward(ctx->daddr, idx, data);
 				end   = search_forward (ctx->daddr, idx, data);
 			}
 			break;
 		case TYPE_SPORT:
 			if (search_from_bloom_filter(ctx->bctx, TYPE_SPORT, data)){
-				idx   = binary_search  (ctx->sport, 0, ARRAY_SIZE-1, data);
+				idx   = binary_search  (ctx->sport, 0, ctx->last_idx - 1, data);
 				start = search_backward(ctx->sport, idx, data);
 				end   = search_forward (ctx->sport, idx, data);
 			}
 			break;
 		case TYPE_DPORT:
 			if (search_from_bloom_filter(ctx->bctx, TYPE_DPORT, data)){
-				idx   = binary_search  (ctx->dport, 0, ARRAY_SIZE-1, data);
+				idx   = binary_search  (ctx->dport, 0, ctx->last_idx - 1, data);
 				start = search_backward(ctx->dport, idx, data);
 				end   = search_forward (ctx->dport, idx, data);
 			}
@@ -265,20 +264,20 @@ search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int
 
 	switch (type) {
 		case TYPE_SADDR:
-			s_start = binary_search_min(ctx->saddr, 0, ARRAY_SIZE-1, start);
-			e_end   = binary_search_max(ctx->saddr, 0, ARRAY_SIZE-1, end);
+			s_start = binary_search_min(ctx->saddr, 0, ctx->last_idx - 1, start);
+			e_end   = binary_search_max(ctx->saddr, 0, ctx->last_idx - 1, end);
 			break;
 		case TYPE_DADDR:
-			s_start = binary_search_min(ctx->daddr, 0, ARRAY_SIZE-1, start);
-			e_end   = binary_search_max(ctx->daddr, 0, ARRAY_SIZE-1, end);
+			s_start = binary_search_min(ctx->daddr, 0, ctx->last_idx - 1, start);
+			e_end   = binary_search_max(ctx->daddr, 0, ctx->last_idx - 1, end);
 			break;
 		case TYPE_SPORT:
-			s_start = binary_search_min(ctx->sport, 0, ARRAY_SIZE-1, start);
-			e_end   = binary_search_max(ctx->sport, 0, ARRAY_SIZE-1, end);
+			s_start = binary_search_min(ctx->sport, 0, ctx->last_idx - 1, start);
+			e_end   = binary_search_max(ctx->sport, 0, ctx->last_idx - 1, end);
 			break;
 		case TYPE_DPORT:
-			s_start = binary_search_min(ctx->dport, 0, ARRAY_SIZE-1, start);
-			e_end   = binary_search_max(ctx->dport, 0, ARRAY_SIZE-1, end);
+			s_start = binary_search_min(ctx->dport, 0, ctx->last_idx - 1, start);
+			e_end   = binary_search_max(ctx->dport, 0, ctx->last_idx - 1, end);
 			break;
 		default:
 			printf("Unknown type\n");
