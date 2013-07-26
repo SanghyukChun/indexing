@@ -1,7 +1,7 @@
 require './utils.rb'
+MAX_LINE = 1000
 
 abort help_message unless ARGV.index("--help").nil?
-
 socket = connect_server
 
 puts <<WELCOME
@@ -32,3 +32,5 @@ cmds = {}
 end
 
 socket.write(cmds.to_s)
+response = socket.recv MAX_LINE
+puts response

@@ -121,6 +121,9 @@ main(const int argc, const char **argv)
     /* read a line from client */
     while (len = read(c, buf, sizeof(buf)-1)) {
       if (len <= 0) { perror("Error: read() failed\n"); exit(-1); }
+
+
+      write(c, buf, len);
       buf[len] = 0;
 
       /* bpf loop */
