@@ -7,7 +7,7 @@ class String
 		return self.match(/^\d+$/)
 	end
 	def valid_query?
-		return true
+		return valid_query(self)
 	end
 end
 
@@ -18,4 +18,8 @@ class IPAddr
 	def last
 		return self.to_range.last.to_i
 	end
+end
+
+def valid_query query
+	return true
 end
