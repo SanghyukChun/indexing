@@ -19,6 +19,12 @@ class IPAddr
 	end
 end
 
+class Hash
+	def to_arg
+		return self.to_s
+	end
+end
+
 def usage
 	puts "Usage: #{File.basename($0)} -h [host] -p [port]"
 	exit(-1)

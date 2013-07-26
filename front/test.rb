@@ -31,7 +31,7 @@ cmds = {}
 	cmds[opt.to_sym] = cmd
 end
 
-socket.write(cmds.to_s)
+socket.write(cmds.to_arg)
 
 while (response = socket.recv MAX_LINE)
 	print response
