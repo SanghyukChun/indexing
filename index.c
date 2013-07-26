@@ -52,7 +52,7 @@ init_index_array(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 
 	init_bloom_filter(bctx);
 	ctx->bctx = bctx;
-	ctx->last_idx = 0;
+	ctx->last_idx = -1;
 
 	LOG_MESSAGE("=== close init index array");
 	return;
@@ -75,7 +75,7 @@ init_index_array(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 static inline void
 insert_index(index_array_context_t *ctx, index_array_node_t *head, unsigned int data, FlowMeta *meta)
 {
-	index_array_node_t *node = &head[ctx->last_idx];
+	index_array_node_t *node = &head[ctx->last_idx+1];
 	node->value  = data;
 	node->fileID = meta->fileID;
 	node->offset = meta->offset;
@@ -98,7 +98,7 @@ insert_into_index_array(index_array_context_t *ctx, FlowMeta *meta)
 
 	ctx->last_idx = ctx->last_idx+1;
 
-	if(ctx->last_idx >= ARRAY_SIZE)
+	if(ctx->last_idx >= ARRAY_SIZE-1)
 	{
 		sort_array(ctx);
 		write_index_array(ctx);
@@ -174,28 +174,28 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 	switch (type) {
 		case TYPE_SADDR:
 			if (search_from_bloom_filter(ctx->bctx, TYPE_SADDR, data)) {
-				idx   = binary_search  (ctx->saddr, 0, ctx->last_idx - 1, data);
+				idx   = binary_search  (ctx->saddr, 0, ctx->last_idx, data);
 				start = search_backward(ctx->saddr, idx, data);	
 				end   = search_forward (ctx->saddr, idx, data);
 			}
 			break;
 		case TYPE_DADDR:
 			if (search_from_bloom_filter(ctx->bctx, TYPE_DADDR, data)) {
-				idx   = binary_search  (ctx->daddr, 0, ctx->last_idx - 1, data);
+				idx   = binary_search  (ctx->daddr, 0, ctx->last_idx, data);
 				start = search_backward(ctx->daddr, idx, data);
 				end   = search_forward (ctx->daddr, idx, data);
 			}
 			break;
 		case TYPE_SPORT:
 			if (search_from_bloom_filter(ctx->bctx, TYPE_SPORT, data)){
-				idx   = binary_search  (ctx->sport, 0, ctx->last_idx - 1, data);
+				idx   = binary_search  (ctx->sport, 0, ctx->last_idx, data);
 				start = search_backward(ctx->sport, idx, data);
 				end   = search_forward (ctx->sport, idx, data);
 			}
 			break;
 		case TYPE_DPORT:
 			if (search_from_bloom_filter(ctx->bctx, TYPE_DPORT, data)){
-				idx   = binary_search  (ctx->dport, 0, ctx->last_idx - 1, data);
+				idx   = binary_search  (ctx->dport, 0, ctx->last_idx, data);
 				start = search_backward(ctx->dport, idx, data);
 				end   = search_forward (ctx->dport, idx, data);
 			}
@@ -264,20 +264,20 @@ search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int
 
 	switch (type) {
 		case TYPE_SADDR:
-			s_start = binary_search_min(ctx->saddr, 0, ctx->last_idx - 1, start);
-			e_end   = binary_search_max(ctx->saddr, 0, ctx->last_idx - 1, end);
+			s_start = binary_search_min(ctx->saddr, 0, ctx->last_idx, start);
+			e_end   = binary_search_max(ctx->saddr, 0, ctx->last_idx, end);
 			break;
 		case TYPE_DADDR:
-			s_start = binary_search_min(ctx->daddr, 0, ctx->last_idx - 1, start);
-			e_end   = binary_search_max(ctx->daddr, 0, ctx->last_idx - 1, end);
+			s_start = binary_search_min(ctx->daddr, 0, ctx->last_idx, start);
+			e_end   = binary_search_max(ctx->daddr, 0, ctx->last_idx, end);
 			break;
 		case TYPE_SPORT:
-			s_start = binary_search_min(ctx->sport, 0, ctx->last_idx - 1, start);
-			e_end   = binary_search_max(ctx->sport, 0, ctx->last_idx - 1, end);
+			s_start = binary_search_min(ctx->sport, 0, ctx->last_idx, start);
+			e_end   = binary_search_max(ctx->sport, 0, ctx->last_idx, end);
 			break;
 		case TYPE_DPORT:
-			s_start = binary_search_min(ctx->dport, 0, ctx->last_idx - 1, start);
-			e_end   = binary_search_max(ctx->dport, 0, ctx->last_idx - 1, end);
+			s_start = binary_search_min(ctx->dport, 0, ctx->last_idx, start);
+			e_end   = binary_search_max(ctx->dport, 0, ctx->last_idx, end);
 			break;
 		default:
 			printf("Unknown type\n");
@@ -306,10 +306,10 @@ sort_array(index_array_context_t *ctx)
 	gettimeofday(&t1, NULL);
 	#endif
 
-	QSORT(struct index_array_node, ctx->saddr, ctx->last_idx, COMPARE_VALUE);
-	QSORT(struct index_array_node, ctx->daddr, ctx->last_idx, COMPARE_VALUE);
-	QSORT(struct index_array_node, ctx->sport, ctx->last_idx, COMPARE_VALUE);
-	QSORT(struct index_array_node, ctx->dport, ctx->last_idx, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->saddr, ctx->last_idx+1, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->daddr, ctx->last_idx+1, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->sport, ctx->last_idx+1, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->dport, ctx->last_idx+1, COMPARE_VALUE);
 
 	#ifdef PRINT_TIME
 	gettimeofday(&t2, NULL);
@@ -392,7 +392,7 @@ clean_index_array(index_array_context_t *ctx)
 
 	clean_bloom_filter(ctx->bctx);
 
-	ctx->last_idx = 0;
+	ctx->last_idx = -1;
 
 	LOG_MESSAGE("=== start clean");
 }
