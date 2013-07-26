@@ -12,6 +12,7 @@ puts <<WELCOME
 WELCOME
 
 cmds = {}
+begin
 %w(stime etime src_ip dst_ip src_port dst_port bpf).each do |opt|
 	line = Readline.readline("#{opt}: ", true)
 	case opt.to_sym
@@ -35,4 +36,7 @@ socket.write(cmds.to_arg)
 
 while (response = socket.recv MAX_LINE)
 	print response
+end
+rescue
+	puts "exception"
 end
