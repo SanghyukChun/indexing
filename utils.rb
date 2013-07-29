@@ -21,7 +21,15 @@ end
 
 class Hash
 	def to_arg
-		return self.to_s
+		str = ""
+		self.each do |k,v|
+			if v.kind_of? Array
+				str += "#{k.to_s}:#{v[0]}-#{v[1]},"
+			else
+				str += "#{k.to_s}:#{v.to_s},"
+			end
+		end
+		return str[0..-2]
 	end
 end
 
