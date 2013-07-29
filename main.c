@@ -28,8 +28,8 @@ static void
 usage(const char *prog) 
 {
 	fprintf(stderr, "Usage: %s port\n"
-		"\tThe port number should be between 1024-65535.\n", 
-		prog);
+			"\tThe port number should be between 1024-65535.\n", 
+			prog);
 }
 
 static int
@@ -39,10 +39,10 @@ get_port(const int argc, const char **argv)
 
 	/* check the command line arguments */
 	if (argc < 2 ||                       /* # of argument too small */
-		(port = atoi(argv[1])) < 1024 ||  /* port should be in 1024-65535 */
-		port > 65535) {
-  	usage(argv[0]);
-	exit(-1);
+			(port = atoi(argv[1])) < 1024 ||  /* port should be in 1024-65535 */
+			port > 65535) {
+		usage(argv[0]);
+		exit(-1);
 	}
 	return port;
 }
@@ -85,10 +85,10 @@ init_bpf_context(bpf_context_t *ctx)
 }
 
 static int
-compile_pcap(bpf_context_t *ctx, char *bpf_query)
+compile_pcap(bpf_context_t *ctx)
 {
 	bpf_u_int32 bpfnet = 0;
-	if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, ctx->bpf, bpf_query, 0, bpfnet)) {
+	if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, ctx->bpf, ctx->bpf_query, 0, bpfnet)) {
 		return -1;
 	}
 	return 0;
@@ -102,22 +102,64 @@ bpf_loop(bpf_context_t *ctx, char buf[])
 	int len;
 	struct bpf_insn *pc = ctx->bpf->bf_insns;
 	/*
-	if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
-	printf("bpf\n");
-	*/
+	   if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
+	   printf("bpf\n");
+	   */
 	/*print_index_array(ctx, TYPE_SADDR);*/
 	/*int *search_result = search_from_index_array(ctx, TYPE_SADDR, value);*/
-	int *search_result = search_range_from_index_array(ctx, TYPE_SADDR, 10000000, 1000000000);
-	if (search_result != NULL)
-		printf("s: %d e: %d\n", search_result[0], search_result[1]);
 
-	printf("%s\n", buf);
+	/*int *search_result = search_range_from_index_array(ctx, TYPE_SADDR, 10000000, 1000000000);*/
+	/*if (search_result != NULL)*/
+	/*printf("s: %d e: %d\n", search_result[0], search_result[1]);*/
+
 }
 
 static void
-parse_bpf_query(bpf_context_t *ctx, char buf[])
+parse_query(bpf_context_t *ctx, char buf[])
 {
-	ctx->bpf_query = buf;
+	char *ptr;
+	ptr = strtok(buf, ",:-");
+	do {
+		if (strcmp(ptr, "stime") == 0) {
+			ptr = strtok(NULL, ",:-");
+			ctx->stime = atoi(ptr);
+		}
+
+		if (strcmp(ptr, "etime") == 0) {
+			ptr = strtok(NULL, ",:-");
+			ctx->etime = atoi(ptr);
+		}
+
+		if (strcmp(ptr, "src_ip") == 0) {
+			ptr = strtok(NULL, ",:-");
+			ctx->fsaddr = atoi(ptr);
+			ptr = strtok(NULL, ",:-");
+			ctx->lsaddr = atoi(ptr);
+		}
+
+		if (strcmp(ptr, "dst_ip") == 0) {
+			ptr = strtok(NULL, ",:-");
+			ctx->fdaddr = atoi(ptr);
+			ptr = strtok(NULL, ",:-");
+			ctx->ldaddr = atoi(ptr);
+		}
+
+		if (strcmp(ptr, "src_port") == 0) {
+			ptr = strtok(NULL, ",:-");
+			ctx->sport = atoi(ptr);
+		}
+
+		if (strcmp(ptr, "dst_port") == 0) {
+			ptr = strtok(NULL, ",:-");
+			ctx->dport = atoi(ptr);
+		}
+
+		if (strcmp(ptr, "bpf") == 0) {
+			ptr = strtok(NULL, ",:-");
+			ctx->bpf_query = ptr;
+		}
+	} while (ptr = strtok(NULL, ",:-"));
+	printf("%d, %d, %d, %d, %d, %d, %d, %d, %s\n", ctx->stime, ctx->etime, ctx->fsaddr, ctx->lsaddr, ctx->fdaddr, ctx->ldaddr, ctx->sport, ctx->dport, ctx->bpf_query);
 }
 
 
@@ -160,7 +202,7 @@ insert_rand_data(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 static void
 index_array_exit(index_array_context_t *ctx)
 {
-//free_index_array(ctx);	
+	//free_index_array(ctx);	
 }
 
 /**
@@ -170,7 +212,7 @@ index_array_exit(index_array_context_t *ctx)
  * @return      [description]
  */
 int
-main(int argc, char *argv[])
+main(const int argc, const char *argv[])
 {
 	int s, c, len;
 	char buf[MAX_LINE];
@@ -186,6 +228,8 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Usage: %s [array_size]\n", argv[0]);
 		exit(-1);
 	}
+
+
 	index_array_context_t *ictx = (index_array_context_t *)malloc(sizeof(index_array_context_t));
 	bloom_filter_context_t *bfctx = (bloom_filter_context_t *)malloc(sizeof(bloom_filter_context_t));
 
@@ -199,15 +243,15 @@ main(int argc, char *argv[])
 
 	/* accept a connection and handle it in a forked process */
 	while ((c = accept(s, NULL, NULL)) >= 0) {
-	/* read a line from client */
+		/* read a line from client */
 		while (len = read(c, buf, sizeof(buf)-1)) {
 			if (len <= 0) { perror("Error: read() failed\n"); exit(-1); }
 
-			parse_bpf_query(bctx, buf);
-			if (compile_pcap(bctx, bctx->bpf_query) < 0) {
+			parse_query(bctx, buf);
+			if (compile_pcap(bctx) < 0) {
 				fprintf(stderr, "Cannot compile BPF filter\n");
-    			write(c, "error", 5); //TODO edit
-    			break;
+				write(c, "error", 5); //TODO edit
+				break;
 			}
 
 			write(c, buf, len);
