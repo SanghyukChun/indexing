@@ -10,4 +10,5 @@ typedef struct query_context {
 	int sport;
 	int dport;
 	char *bpf_query;
+	bool no_bpf;
 } query_context_t;

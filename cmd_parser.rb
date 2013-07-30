@@ -17,7 +17,7 @@ begin
 	line = Readline.readline("#{opt}: ", true)
 
 	if line.strip.empty?
-		cmd = 0
+		cmd = -1
 	else
 		case opt.to_sym
 		when :stime, :etime
@@ -37,6 +37,7 @@ begin
 	cmds[opt.to_sym] = cmd
 end
 
+puts cmds.to_arg
 socket.write(cmds.to_arg)
 
 while (response = socket.recv MAX_LINE)

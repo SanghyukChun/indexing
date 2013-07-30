@@ -83,11 +83,15 @@ init_query_context(query_context_t *qctx, index_array_context_t *ictx)
 	struct bpf_program *bpf = (struct bpf_program *)malloc(sizeof(struct bpf_program));
 	qctx->bpf = bpf;
 	qctx->ictx = ictx;
+	qctx->no_bpf = false;
 }
 
 static int
 compile_pcap(query_context_t *qctx)
 {
+	if (qctx->no_bpf)
+		return 0;
+
 	bpf_u_int32 bpfnet = 0;
 	if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, qctx->bpf, qctx->bpf_query, 0, bpfnet)) {
 		return -1;
@@ -95,94 +99,77 @@ compile_pcap(query_context_t *qctx)
 	return 0;
 }
 
-static void
-bpf_loop(query_context_t *qctx, char buf[])
-{
-	/* TODO implement */
-	/*
-	u_char *pkt;
-	int len;
-	struct bpf_insn *pc = qctx->bpf->bf_insns;
-	   if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
-	   printf("bpf\n");
-	   */
-	/*print_index_array(ctx, TYPE_SADDR);*/
-	/*int *search_result = search_from_index_array(ctx, TYPE_SADDR, value);*/
-
-	/*int *search_result = search_range_from_index_array(ctx, TYPE_SADDR, 10000000, 1000000000);*/
-	/*if (search_result != NULL)*/
-	/*printf("s: %d e: %d\n", search_result[0], search_result[1]);*/
-
-}
-
 static int
 parse_query(query_context_t *qctx, char buf[])
 {
 	int success = 0;
 	char *ptr;
-	ptr = strtok(buf, ",:-");
+	ptr = strtok(buf, ",:/");
 	do {
+			printf("%s\n",ptr);
 		if (strcmp(ptr, "stime") == 0) {
-			ptr = strtok(NULL, ",:-");
+			ptr = strtok(NULL, ",:/");
 			qctx->stime = atoi(ptr);
 			success++;
 		}
 
 		else if (strcmp(ptr, "etime") == 0) {
-			ptr = strtok(NULL, ",:-");
+			ptr = strtok(NULL, ",:/");
 			qctx->etime = atoi(ptr);
 			success++;
 		}
 
 		else if (strcmp(ptr, "src_ip") == 0) {
-			ptr = strtok(NULL, ",:-");
-			if (atoi(ptr) == 0) {
-				qctx->fsaddr = 0;
-				qctx->lsaddr = 0;
+			ptr = strtok(NULL, ",:/");
+			if (atoi(ptr) < 0) {
+				qctx->fsaddr = -1;
+				qctx->lsaddr = -1;
 			} else {
 				qctx->fsaddr = atoi(ptr);
-				ptr = strtok(NULL, ",:-");
+				ptr = strtok(NULL, ",:/");
 				qctx->lsaddr = atoi(ptr);
 			}
 			success++;
 		}
 
 		else if (strcmp(ptr, "dst_ip") == 0) {
-			ptr = strtok(NULL, ",:-");
-			if (atoi(ptr) == 0) {
-				qctx->fdaddr = 0;
-				qctx->ldaddr = 0;
+			ptr = strtok(NULL, ",:/");
+			if (atoi(ptr) < 0) {
+				qctx->fdaddr = -1;
+				qctx->ldaddr = -1;
 			} else {
 				qctx->fdaddr = atoi(ptr);
-				ptr = strtok(NULL, ",:-");
+				ptr = strtok(NULL, ",:/");
 				qctx->ldaddr = atoi(ptr);
 			}
 			success++;
 		}
 
 		else if (strcmp(ptr, "src_port") == 0) {
-			ptr = strtok(NULL, ",:-");
+			ptr = strtok(NULL, ",:/");
 			qctx->sport = atoi(ptr);
 			success++;
 		}
 
 		else if (strcmp(ptr, "dst_port") == 0) {
-			ptr = strtok(NULL, ",:-");
+			ptr = strtok(NULL, ",:/");
 			qctx->dport = atoi(ptr);
 			success++;
 		}
 
 		else if (strcmp(ptr, "bpf") == 0) {
-			ptr = strtok(NULL, ",:-");
+			ptr = strtok(NULL, ",:/");
 			qctx->bpf_query = ptr;
 			success++;
 		}
 
 		else 
 			return -1;
-	} while (ptr = strtok(NULL, ",:-"));
+	} while (ptr = strtok(NULL, ",:/"));
 	if (success != 7)
 		return -1;
+	if (atoi(qctx->bpf_query) < 0)
+		qctx->no_bpf = true;
 	printf("%d, %d, %d, %d, %d, %d, %d, %d, %s\n", qctx->stime, qctx->etime, qctx->fsaddr, qctx->lsaddr, qctx->fdaddr, qctx->ldaddr, qctx->sport, qctx->dport, qctx->bpf_query);
 	return 1;
 }
@@ -228,6 +215,26 @@ index_array_exit(index_array_context_t *ictx)
 	//free_index_array(ctx);	
 }
 
+static void
+search_with_query(query_context_t *qctx, char buf[])
+{
+	/* TODO implement */
+	/*
+	u_char *pkt;
+	int len;
+	struct bpf_insn *pc = qctx->bpf->bf_insns;
+	   if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
+	   printf("bpf\n");
+	   */
+	/*print_index_array(ctx, TYPE_SADDR);*/
+	/*int *search_result = search_from_index_array(ctx, TYPE_SADDR, value);*/
+
+	/*int *search_result = search_range_from_index_array(ctx, TYPE_SADDR, 10000000, 1000000000);*/
+	/*if (search_result != NULL)*/
+	/*printf("s: %d e: %d\n", search_result[0], search_result[1]);*/
+
+}
+
 /**
  * main function
  * @param  argc [description]
@@ -271,7 +278,7 @@ main(const int argc, const char *argv[])
 				break;
 			}
 
-			bpf_loop(qctx, buf);
+			search_with_query(qctx, buf);
 
 		}
 		close(c);

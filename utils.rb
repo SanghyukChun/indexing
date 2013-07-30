@@ -24,7 +24,7 @@ class Hash
 		str = ""
 		self.each do |k,v|
 			if v.kind_of? Array
-				str += "#{k.to_s}:#{v[0]}-#{v[1]},"
+				str += "#{k.to_s}:#{v[0]}/#{v[1]},"
 			else
 				str += "#{k.to_s}:#{v.to_s},"
 			end
