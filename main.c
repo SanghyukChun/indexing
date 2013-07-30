@@ -77,7 +77,11 @@ init_socket(int port)
 
 	return s;
 }
+/*----------------------------------------------------*/
 
+
+
+/*----------------------------------------------------*/
 static void
 init_query_context(query_context_t *qctx, index_array_context_t *ictx)
 {
@@ -174,12 +178,11 @@ parse_query(query_context_t *qctx, char buf[])
 	printf("%d, %d, %d, %d, %d, %d, %d, %d, %s\n", qctx->stime, qctx->etime, qctx->fsaddr, qctx->lsaddr, qctx->fdaddr, qctx->ldaddr, qctx->sport, qctx->dport, qctx->bpf_query);
 	return 1;
 }
+/*----------------------------------------------------*/
 
 
-/**
- * main for index array index structure
- * @param ctx [description]
- */
+
+/*----------------------------------------------------*/
 static void
 insert_rand_data(index_array_context_t *ictx, bloom_filter_context_t *bctx, int size)
 {
@@ -206,16 +209,16 @@ insert_rand_data(index_array_context_t *ictx, bloom_filter_context_t *bctx, int 
 	write_index_array(ictx);
 }
 
-/**
- * exit for index array index structure
- * @param ctx [description]
- */
 static void
 index_array_exit(index_array_context_t *ictx)
 {
 	//free_index_array(ctx);	
 }
+/*----------------------------------------------------*/
 
+
+
+/*----------------------------------------------------*/
 static void
 get_file_info(query_context_t *qctx)
 {
@@ -255,29 +258,17 @@ search_with_query(query_context_t *qctx)
 		printf("dport: %d %d\n", res[0], res[1]);
 
 
-	/* TODO implement */
-	/*
 	u_char *pkt;
 	int len;
+
 	struct bpf_insn *pc = qctx->bpf->bf_insns;
-	   if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
-	   printf("bpf\n");
-	   */
-	/*print_index_array(ctx, TYPE_SADDR);*/
-	/*int *search_result = search_from_index_array(ctx, TYPE_SADDR, value);*/
-
-	/*int *search_result = search_range_from_index_array(ctx, TYPE_SADDR, 10000000, 1000000000);*/
-	/*if (search_result != NULL)*/
-	/*printf("s: %d e: %d\n", search_result[0], search_result[1]);*/
-
+	if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
+		return; // TODO implement
 }
+/*----------------------------------------------------*/
 
-/**
- * main function
- * @param  argc [description]
- * @param  argv [description]
- * @return      [description]
- */
+
+/*----------------------------------------------------*/
 int
 main(const int argc, const char *argv[])
 {
@@ -327,3 +318,4 @@ main(const int argc, const char *argv[])
 	index_array_exit(ictx);
 	return 0;
 }
+/*----------------------------------------------------*/
