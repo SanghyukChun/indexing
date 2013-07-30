@@ -1,4 +1,4 @@
-typedef struct bpf_context {
+typedef struct query_context {
 	struct bpf_program *bpf;
 	int stime;
 	int etime;
@@ -9,4 +9,4 @@ typedef struct bpf_context {
 	int sport;
 	int dport;
 	char *bpf_query;
-} bpf_context_t;
+} query_context_t;

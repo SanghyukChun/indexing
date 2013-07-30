@@ -78,29 +78,29 @@ init_socket(int port)
 }
 
 static void
-init_bpf_context(bpf_context_t *ctx)
+init_query_context(query_context_t *qctx)
 {
 	struct bpf_program *bpf = (struct bpf_program *)malloc(sizeof(struct bpf_program));
-	ctx->bpf = bpf;
+	qctx->bpf = bpf;
 }
 
 static int
-compile_pcap(bpf_context_t *ctx)
+compile_pcap(query_context_t *qctx)
 {
 	bpf_u_int32 bpfnet = 0;
-	if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, ctx->bpf, ctx->bpf_query, 0, bpfnet)) {
+	if (pcap_compile_nopcap(MAX_PACKET_SIZE, DLT_EN10MB, qctx->bpf, qctx->bpf_query, 0, bpfnet)) {
 		return -1;
 	}
 	return 0;
 }
 
 static void
-bpf_loop(bpf_context_t *ctx, char buf[])
+bpf_loop(query_context_t *qctx, char buf[])
 {
 	/* TODO implement */
 	u_char *pkt;
 	int len;
-	struct bpf_insn *pc = ctx->bpf->bf_insns;
+	struct bpf_insn *pc = qctx->bpf->bf_insns;
 	/*
 	   if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
 	   printf("bpf\n");
@@ -115,51 +115,51 @@ bpf_loop(bpf_context_t *ctx, char buf[])
 }
 
 static void
-parse_query(bpf_context_t *ctx, char buf[])
+parse_query(query_context_t *qctx, char buf[])
 {
 	char *ptr;
 	ptr = strtok(buf, ",:-");
 	do {
 		if (strcmp(ptr, "stime") == 0) {
 			ptr = strtok(NULL, ",:-");
-			ctx->stime = atoi(ptr);
+			qctx->stime = atoi(ptr);
 		}
 
 		if (strcmp(ptr, "etime") == 0) {
 			ptr = strtok(NULL, ",:-");
-			ctx->etime = atoi(ptr);
+			qctx->etime = atoi(ptr);
 		}
 
 		if (strcmp(ptr, "src_ip") == 0) {
 			ptr = strtok(NULL, ",:-");
-			ctx->fsaddr = atoi(ptr);
+			qctx->fsaddr = atoi(ptr);
 			ptr = strtok(NULL, ",:-");
-			ctx->lsaddr = atoi(ptr);
+			qctx->lsaddr = atoi(ptr);
 		}
 
 		if (strcmp(ptr, "dst_ip") == 0) {
 			ptr = strtok(NULL, ",:-");
-			ctx->fdaddr = atoi(ptr);
+			qctx->fdaddr = atoi(ptr);
 			ptr = strtok(NULL, ",:-");
-			ctx->ldaddr = atoi(ptr);
+			qctx->ldaddr = atoi(ptr);
 		}
 
 		if (strcmp(ptr, "src_port") == 0) {
 			ptr = strtok(NULL, ",:-");
-			ctx->sport = atoi(ptr);
+			qctx->sport = atoi(ptr);
 		}
 
 		if (strcmp(ptr, "dst_port") == 0) {
 			ptr = strtok(NULL, ",:-");
-			ctx->dport = atoi(ptr);
+			qctx->dport = atoi(ptr);
 		}
 
 		if (strcmp(ptr, "bpf") == 0) {
 			ptr = strtok(NULL, ",:-");
-			ctx->bpf_query = ptr;
+			qctx->bpf_query = ptr;
 		}
 	} while (ptr = strtok(NULL, ",:-"));
-	printf("%d, %d, %d, %d, %d, %d, %d, %d, %s\n", ctx->stime, ctx->etime, ctx->fsaddr, ctx->lsaddr, ctx->fdaddr, ctx->ldaddr, ctx->sport, ctx->dport, ctx->bpf_query);
+	printf("%d, %d, %d, %d, %d, %d, %d, %d, %s\n", qctx->stime, qctx->etime, qctx->fsaddr, qctx->lsaddr, qctx->fdaddr, qctx->ldaddr, qctx->sport, qctx->dport, qctx->bpf_query);
 }
 
 
@@ -168,9 +168,9 @@ parse_query(bpf_context_t *ctx, char buf[])
  * @param ctx [description]
  */
 static void
-insert_rand_data(index_array_context_t *ctx, bloom_filter_context_t *bctx, int size)
+insert_rand_data(index_array_context_t *ictx, bloom_filter_context_t *bctx, int size)
 {
-	init_index_array(ctx, bctx, size);
+	init_index_array(ictx, bctx, size);
 
 	bool done = false;
 
@@ -188,11 +188,11 @@ insert_rand_data(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 		info->dport = rand();
 
 		value = info->saddr;
-		if (insert_into_index_array(ctx, meta))
+		if (insert_into_index_array(ictx, meta))
 			done = true;
 	}
 
-	write_index_array(ctx);
+	write_index_array(ictx);
 }
 
 /**
@@ -200,7 +200,7 @@ insert_rand_data(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
  * @param ctx [description]
  */
 static void
-index_array_exit(index_array_context_t *ctx)
+index_array_exit(index_array_context_t *ictx)
 {
 	//free_index_array(ctx);	
 }
@@ -220,8 +220,8 @@ main(const int argc, const char *argv[])
 	s = init_socket(get_port(argc, argv));
 
 	/* initialize bpf */
-	bpf_context_t *bctx = (bpf_context_t *)malloc(sizeof(bpf_context_t));
-	init_bpf_context(bctx);
+	query_context_t *qctx = (query_context_t *)malloc(sizeof(query_context_t));
+	init_query_context(qctx);
 
 	if (argc != 2)
 	{
@@ -231,14 +231,14 @@ main(const int argc, const char *argv[])
 
 
 	index_array_context_t *ictx = (index_array_context_t *)malloc(sizeof(index_array_context_t));
-	bloom_filter_context_t *bfctx = (bloom_filter_context_t *)malloc(sizeof(bloom_filter_context_t));
+	bloom_filter_context_t *bctx = (bloom_filter_context_t *)malloc(sizeof(bloom_filter_context_t));
 
 
 
 
 
 
-	insert_rand_data(ictx, bfctx, 30000);
+	insert_rand_data(ictx, bctx, 30000);
 
 
 	/* accept a connection and handle it in a forked process */
@@ -246,19 +246,17 @@ main(const int argc, const char *argv[])
 		/* read a line from client */
 		while (len = read(c, buf, sizeof(buf)-1)) {
 			if (len <= 0) { perror("Error: read() failed\n"); exit(-1); }
+			buf[len] = 0;
 
-			parse_query(bctx, buf);
-			if (compile_pcap(bctx) < 0) {
+			parse_query(qctx, buf);
+			if (compile_pcap(qctx) < 0) {
 				fprintf(stderr, "Cannot compile BPF filter\n");
 				write(c, "error", 5); //TODO edit
 				break;
 			}
 
-			write(c, buf, len);
-			buf[len] = 0;
-
 			/* bpf loop */
-			bpf_loop(bctx, buf);
+			bpf_loop(qctx, buf);
 
 		}
 		close(c);
