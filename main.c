@@ -184,7 +184,7 @@ parse_query(query_context_t *qctx, char buf[])
 
 		else 
 			return -1;
-	} while (ptr = strtok(NULL, ",:/"));
+	} while ( (ptr = strtok(NULL, ",:/")) != NULL );
 	if (success != 7)
 		return -1;
 	if (atoi(qctx->bpf_query) < 0)
@@ -209,7 +209,6 @@ insert_rand_data(index_array_context_t *ictx, bloom_filter_context_t *bctx, int 
 	FlowMeta *meta = (FlowMeta *)malloc(sizeof(FlowMeta));
 	FlowInfo *info = &meta->flowinfo;
 
-	int cnt = 0;
 	while(!done) {
 		info->saddr = rand();
 		info->daddr = rand();
@@ -304,7 +303,7 @@ main(const int argc, const char *argv[])
 	init_query_context(qctx, ictx);
 
 	while ((c = accept(s, NULL, NULL)) >= 0) {
-		while (len = read(c, buf, sizeof(buf)-1)) {
+		while ((len = read(c, buf, sizeof(buf)-1))) {
 			if (len <= 0) { perror("Error: read() failed\n"); exit(-1); }
 			buf[len] = 0;
 
