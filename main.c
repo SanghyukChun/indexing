@@ -136,17 +136,27 @@ parse_query(query_context_t *qctx, char buf[])
 
 		else if (strcmp(ptr, "src_ip") == 0) {
 			ptr = strtok(NULL, ",:-");
-			qctx->fsaddr = atoi(ptr);
-			ptr = strtok(NULL, ",:-");
-			qctx->lsaddr = atoi(ptr);
+			if (atoi(ptr) == 0) {
+				qctx->fsaddr = 0;
+				qctx->lsaddr = 0;
+			} else {
+				qctx->fsaddr = atoi(ptr);
+				ptr = strtok(NULL, ",:-");
+				qctx->lsaddr = atoi(ptr);
+			}
 			success++;
 		}
 
 		else if (strcmp(ptr, "dst_ip") == 0) {
 			ptr = strtok(NULL, ",:-");
-			qctx->fdaddr = atoi(ptr);
-			ptr = strtok(NULL, ",:-");
-			qctx->ldaddr = atoi(ptr);
+			if (atoi(ptr) == 0) {
+				qctx->fdaddr = 0;
+				qctx->ldaddr = 0;
+			} else {
+				qctx->fdaddr = atoi(ptr);
+				ptr = strtok(NULL, ",:-");
+				qctx->ldaddr = atoi(ptr);
+			}
 			success++;
 		}
 
