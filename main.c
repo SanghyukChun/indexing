@@ -15,6 +15,7 @@
 
 #include "main.h"
 #include "index.h"
+#include "util.h"
 
 #define MAX_LINE 4096 
 #define MAX_PACKET_SIZE 4096 
@@ -216,8 +217,44 @@ index_array_exit(index_array_context_t *ictx)
 }
 
 static void
-search_with_query(query_context_t *qctx, char buf[])
+get_file_info(query_context_t *qctx)
 {
+	// TODO implement
+	// qctx->stime; qctx->etime;
+	return;
+}
+
+static void
+search_with_query(query_context_t *qctx)
+{
+	int *res;
+	get_file_info(qctx);
+
+	res = 
+	search_range_from_index_array(qctx->ictx, TYPE_SADDR, qctx->fsaddr, qctx->lsaddr);
+
+	if (res != NULL)
+		printf("saddr: %d %d\n", res[0], res[1]);
+
+	res = 
+	search_range_from_index_array(qctx->ictx, TYPE_DADDR, qctx->fsaddr, qctx->lsaddr);
+
+	if (res != NULL)
+		printf("daddr: %d %d\n", res[0], res[1]);
+
+	res = 
+	search_range_from_index_array(qctx->ictx, TYPE_SPORT, qctx->fsaddr, qctx->lsaddr);
+
+	if (res != NULL)
+		printf("sport: %d %d\n", res[0], res[1]);
+
+	res = 
+	search_range_from_index_array(qctx->ictx, TYPE_DPORT, qctx->fsaddr, qctx->lsaddr);
+
+	if (res != NULL)
+		printf("dport: %d %d\n", res[0], res[1]);
+
+
 	/* TODO implement */
 	/*
 	u_char *pkt;
@@ -278,7 +315,7 @@ main(const int argc, const char *argv[])
 				break;
 			}
 
-			search_with_query(qctx, buf);
+			search_with_query(qctx);
 
 		}
 		close(c);

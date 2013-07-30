@@ -1,14 +1,14 @@
 typedef struct query_context {
-	struct index_context_t *ictx;
+	struct index_array_context_t *ictx;
 	struct bpf_program *bpf;
-	int stime;
-	int etime;
-	int fsaddr;
-	int lsaddr;
-	int fdaddr;
-	int ldaddr;
-	int sport;
-	int dport;
+	unsigned int stime;
+	unsigned int etime;
+	unsigned int fsaddr;
+	unsigned int lsaddr;
+	unsigned int fdaddr;
+	unsigned int ldaddr;
+	unsigned int sport;
+	unsigned int dport;
 	char *bpf_query;
 	bool no_bpf;
 } query_context_t;
