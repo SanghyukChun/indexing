@@ -115,52 +115,66 @@ bpf_loop(query_context_t *qctx, char buf[])
 
 }
 
-static void
+static int
 parse_query(query_context_t *qctx, char buf[])
 {
+	int success = 0;
 	char *ptr;
 	ptr = strtok(buf, ",:-");
 	do {
 		if (strcmp(ptr, "stime") == 0) {
 			ptr = strtok(NULL, ",:-");
 			qctx->stime = atoi(ptr);
+			success++;
 		}
 
-		if (strcmp(ptr, "etime") == 0) {
+		else if (strcmp(ptr, "etime") == 0) {
 			ptr = strtok(NULL, ",:-");
 			qctx->etime = atoi(ptr);
+			success++;
 		}
 
-		if (strcmp(ptr, "src_ip") == 0) {
+		else if (strcmp(ptr, "src_ip") == 0) {
 			ptr = strtok(NULL, ",:-");
 			qctx->fsaddr = atoi(ptr);
 			ptr = strtok(NULL, ",:-");
 			qctx->lsaddr = atoi(ptr);
+			success++;
 		}
 
-		if (strcmp(ptr, "dst_ip") == 0) {
+		else if (strcmp(ptr, "dst_ip") == 0) {
 			ptr = strtok(NULL, ",:-");
 			qctx->fdaddr = atoi(ptr);
 			ptr = strtok(NULL, ",:-");
 			qctx->ldaddr = atoi(ptr);
+			success++;
 		}
 
-		if (strcmp(ptr, "src_port") == 0) {
+		else if (strcmp(ptr, "src_port") == 0) {
 			ptr = strtok(NULL, ",:-");
 			qctx->sport = atoi(ptr);
+			success++;
 		}
 
-		if (strcmp(ptr, "dst_port") == 0) {
+		else if (strcmp(ptr, "dst_port") == 0) {
 			ptr = strtok(NULL, ",:-");
 			qctx->dport = atoi(ptr);
+			success++;
 		}
 
-		if (strcmp(ptr, "bpf") == 0) {
+		else if (strcmp(ptr, "bpf") == 0) {
 			ptr = strtok(NULL, ",:-");
 			qctx->bpf_query = ptr;
+			success++;
 		}
+
+		else 
+			return -1;
 	} while (ptr = strtok(NULL, ",:-"));
+	if (success != 7)
+		return -1;
 	printf("%d, %d, %d, %d, %d, %d, %d, %d, %s\n", qctx->stime, qctx->etime, qctx->fsaddr, qctx->lsaddr, qctx->fdaddr, qctx->ldaddr, qctx->sport, qctx->dport, qctx->bpf_query);
+	return 1;
 }
 
 
@@ -230,18 +244,17 @@ main(const int argc, const char *argv[])
 	query_context_t *qctx = (query_context_t *)malloc(sizeof(query_context_t));
 	init_query_context(qctx, ictx);
 
-
-
-
-
-
-
 	while ((c = accept(s, NULL, NULL)) >= 0) {
 		while (len = read(c, buf, sizeof(buf)-1)) {
 			if (len <= 0) { perror("Error: read() failed\n"); exit(-1); }
 			buf[len] = 0;
 
-			parse_query(qctx, buf);
+			if (parse_query(qctx, buf) < 0) {
+				fprintf(stderr, "Not enough query options\n");
+				write(c, "error", 5); //TODO edit
+				break;
+			}
+
 			if (compile_pcap(qctx) < 0) {
 				fprintf(stderr, "Cannot compile BPF filter\n");
 				write(c, "error", 5); //TODO edit
