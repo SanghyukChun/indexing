@@ -98,10 +98,10 @@ static void
 bpf_loop(query_context_t *qctx, char buf[])
 {
 	/* TODO implement */
+	/*
 	u_char *pkt;
 	int len;
 	struct bpf_insn *pc = qctx->bpf->bf_insns;
-	/*
 	   if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
 	   printf("bpf\n");
 	   */
@@ -180,14 +180,12 @@ insert_rand_data(index_array_context_t *ictx, bloom_filter_context_t *bctx, int 
 	FlowInfo *info = &meta->flowinfo;
 
 	int cnt = 0;
-	unsigned int value = 0;
 	while(!done) {
 		info->saddr = rand();
 		info->daddr = rand();
 		info->sport = rand();
 		info->dport = rand();
 
-		value = info->saddr;
 		if (insert_into_index_array(ictx, meta))
 			done = true;
 	}
@@ -219,31 +217,23 @@ main(const int argc, const char *argv[])
 
 	s = init_socket(get_port(argc, argv));
 
-	/* initialize bpf */
+
 	query_context_t *qctx = (query_context_t *)malloc(sizeof(query_context_t));
 	init_query_context(qctx);
 
-	if (argc != 2)
-	{
-		fprintf(stderr, "Usage: %s [array_size]\n", argv[0]);
-		exit(-1);
-	}
 
 
+	/* Start insert */
 	index_array_context_t *ictx = (index_array_context_t *)malloc(sizeof(index_array_context_t));
 	bloom_filter_context_t *bctx = (bloom_filter_context_t *)malloc(sizeof(bloom_filter_context_t));
-
-
-
-
-
-
 	insert_rand_data(ictx, bctx, 30000);
+	/* End insert*/
 
 
-	/* accept a connection and handle it in a forked process */
+
+
+
 	while ((c = accept(s, NULL, NULL)) >= 0) {
-		/* read a line from client */
 		while (len = read(c, buf, sizeof(buf)-1)) {
 			if (len <= 0) { perror("Error: read() failed\n"); exit(-1); }
 			buf[len] = 0;
@@ -255,7 +245,6 @@ main(const int argc, const char *argv[])
 				break;
 			}
 
-			/* bpf loop */
 			bpf_loop(qctx, buf);
 
 		}
