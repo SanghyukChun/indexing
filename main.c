@@ -114,51 +114,65 @@ parse_query(query_context_t *qctx, char buf[])
 			printf("%s\n",ptr);
 		if (strcmp(ptr, "stime") == 0) {
 			ptr = strtok(NULL, ",:/");
-			qctx->stime = atoi(ptr);
+			qctx->stime = strtoul(ptr, NULL, 0);
 			success++;
 		}
 
 		else if (strcmp(ptr, "etime") == 0) {
 			ptr = strtok(NULL, ",:/");
-			qctx->etime = atoi(ptr);
+			qctx->etime = strtoul(ptr, NULL, 0);
 			success++;
 		}
 
 		else if (strcmp(ptr, "src_ip") == 0) {
 			ptr = strtok(NULL, ",:/");
-			if (atoi(ptr) < 0) {
+			if (strtoul(ptr, NULL, 0) < 0) {
 				qctx->fsaddr = -1;
 				qctx->lsaddr = -1;
 			} else {
-				qctx->fsaddr = atoi(ptr);
+				qctx->fsaddr = strtoul(ptr, NULL, 0);
 				ptr = strtok(NULL, ",:/");
-				qctx->lsaddr = atoi(ptr);
+				qctx->lsaddr = strtoul(ptr, NULL, 0);
 			}
 			success++;
 		}
 
 		else if (strcmp(ptr, "dst_ip") == 0) {
 			ptr = strtok(NULL, ",:/");
-			if (atoi(ptr) < 0) {
+			if (atoi(ptr) < strtoul(ptr, NULL, 0)) {
 				qctx->fdaddr = -1;
 				qctx->ldaddr = -1;
 			} else {
-				qctx->fdaddr = atoi(ptr);
+				qctx->fdaddr = strtoul(ptr, NULL, 0);
 				ptr = strtok(NULL, ",:/");
-				qctx->ldaddr = atoi(ptr);
+				qctx->ldaddr = strtoul(ptr, NULL, 0);
 			}
 			success++;
 		}
 
 		else if (strcmp(ptr, "src_port") == 0) {
 			ptr = strtok(NULL, ",:/");
-			qctx->sport = atoi(ptr);
+			if (strtoul(ptr, NULL, 0) < 0) {
+				qctx->fsport = -1;
+				qctx->lsport = -1;
+			} else {
+				qctx->fsport = strtoul(ptr, NULL, 0);
+				ptr = strtok(NULL, ",:/");
+				qctx->lsport = strtoul(ptr, NULL, 0);
+			}
 			success++;
 		}
 
 		else if (strcmp(ptr, "dst_port") == 0) {
 			ptr = strtok(NULL, ",:/");
-			qctx->dport = atoi(ptr);
+			if (atoi(ptr) < 0) {
+				qctx->fdport = -1;
+				qctx->ldport = -1;
+			} else {
+				qctx->fdport = strtoul(ptr, NULL, 0);
+				ptr = strtok(NULL, ",:/");
+				qctx->ldport = strtoul(ptr, NULL, 0);
+			}
 			success++;
 		}
 
@@ -175,7 +189,7 @@ parse_query(query_context_t *qctx, char buf[])
 		return -1;
 	if (atoi(qctx->bpf_query) < 0)
 		qctx->no_bpf = true;
-	printf("%d, %d, %d, %d, %d, %d, %d, %d, %s\n", qctx->stime, qctx->etime, qctx->fsaddr, qctx->lsaddr, qctx->fdaddr, qctx->ldaddr, qctx->sport, qctx->dport, qctx->bpf_query);
+	printf("%d %d %d, %d, %d, %d, %d, %d, %d, %d, %s\n", qctx->stime, qctx->etime, qctx->fsaddr, qctx->lsaddr, qctx->fdaddr, qctx->ldaddr, qctx->fsport, qctx->lsport, qctx->fdport, qctx->ldport, qctx->bpf_query);
 	return 1;
 }
 /*----------------------------------------------------*/

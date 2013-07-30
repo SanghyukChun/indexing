@@ -27,9 +27,13 @@ begin
 			abort "only ipv4 is available" unless ip.ipv4?
 			cmd = [ip.first, ip.last]
 		when :src_port, :dst_port
-			abort "only integer is available" unless line.int?
+			ports = line.split(/[\/,\s\-\.~]/).reject{|x| x.empty?}
+			abort "invalid option" if ports.empty?
+			ports.concat(ports) if ports.size == 1
+			abort "too many ports" if ports.size > 2
+			abort "only integer is available" unless ports.count{|x|x.match(/\d+/)} == ports.size
 			abort "invalid port" unless (0..65535).include? line.to_i
-			cmd = line.to_i
+			cmd = ports
 		else
 			cmd = line
 		end
