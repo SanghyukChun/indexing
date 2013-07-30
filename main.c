@@ -78,10 +78,11 @@ init_socket(int port)
 }
 
 static void
-init_query_context(query_context_t *qctx)
+init_query_context(query_context_t *qctx, index_array_context_t *ictx)
 {
 	struct bpf_program *bpf = (struct bpf_program *)malloc(sizeof(struct bpf_program));
 	qctx->bpf = bpf;
+	qctx->ictx = ictx;
 }
 
 static int
@@ -218,16 +219,18 @@ main(const int argc, const char *argv[])
 	s = init_socket(get_port(argc, argv));
 
 
-	query_context_t *qctx = (query_context_t *)malloc(sizeof(query_context_t));
-	init_query_context(qctx);
-
-
 
 	/* Start insert */
 	index_array_context_t *ictx = (index_array_context_t *)malloc(sizeof(index_array_context_t));
 	bloom_filter_context_t *bctx = (bloom_filter_context_t *)malloc(sizeof(bloom_filter_context_t));
 	insert_rand_data(ictx, bctx, 30000);
 	/* End insert*/
+
+
+	query_context_t *qctx = (query_context_t *)malloc(sizeof(query_context_t));
+	init_query_context(qctx, ictx);
+
+
 
 
 
