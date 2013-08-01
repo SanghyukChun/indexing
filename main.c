@@ -12,6 +12,9 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <pcap.h>
+#include <sys/eventfd.h>
+#include <sys/epoll.h>
+#include <pthread.h>
 
 #include "main.h"
 #include "index.h"
@@ -329,11 +332,17 @@ init_index_context(index_context_t *ictx, index_argument_t *iarg)
 	//TODO implement
 }
 /*****************************************************************************/
+static inline void
+index_loop(index_context_t *ictx)
+{
+
+}
+/*****************************************************************************/
 void *
 index_main(void *arg){
 	index_argument_t *iarg = (index_argument_t *)arg;
 	index_context_t ictx;
-	//struct epoll_event ev;
+	struct epoll_event ev;
 
 	init_index_context(&ictx, iarg);
 	/*
@@ -356,7 +365,27 @@ index_main(void *arg){
 	*/
 }
 /*****************************************************************************/
+static inline bool
+create_index_threads(engine_context_t *ictx, index_argument_t *iarg)
+{
+	int i;
+	int evfd;
 
+	//pthread_mutex_lock(&ectx->ec_mutex);
+	if ((evfd = eventfd(0, EFD_NONBLOCK)) == -1) {
+		perror("eventfd");
+		return false;
+	}
+
+	if (pthread_create(0, NULL, index_main, (void*)&iarg)) {
+		perror("pthread_create");
+		return false;
+	}
+
+	//pthread_mutex_lock(&ectx->ec_mutex);
+	//pthread_mutex_unlock(&ectx->ec_mutex);
+	return true;
+}
 /*----------------------------------------------------*/
 int
 main(const int argc, const char *argv[])
