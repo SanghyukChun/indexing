@@ -1,11 +1,29 @@
 #include <linux/types.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "util.h"
 #include "bloom_filter.h"
 #include "qsort.h"
 #define COMPARE_VALUE(a,b) ( (a)->value < (b)->value )
+
+typedef struct index_argument {
+	int ia_cpu;
+	int ia_idx;
+	//char wa_buf[CONFIG_BUF_SIZE];
+	//struct engine_context *ic_ectx;
+} index_argument_t;
+
+typedef struct index_context {
+	int ic_cpu;
+	int ic_idx;
+	int ic_evfd;
+	char *ic_buf;
+	//struct engine_context *ic_ectx;
+	int ic_epollfd;
+	bool ic_done;
+} index_context_t;
 
 typedef struct index_array_node
 {

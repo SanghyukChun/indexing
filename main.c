@@ -111,7 +111,6 @@ parse_query(query_context_t *qctx, char buf[])
 	char *ptr;
 	ptr = strtok(buf, ",:/");
 	do {
-			printf("%s\n",ptr);
 		if (strcmp(ptr, "stime") == 0) {
 			ptr = strtok(NULL, ",:/");
 			qctx->stime = strtoul(ptr, NULL, 0);
@@ -185,11 +184,14 @@ parse_query(query_context_t *qctx, char buf[])
 		else 
 			return -1;
 	} while ( (ptr = strtok(NULL, ",:/")) != NULL );
+
 	if (success != 7)
 		return -1;
+	
 	if (atoi(qctx->bpf_query) < 0)
 		qctx->no_bpf = true;
-	printf("%d %d %d, %d, %d, %d, %d, %d, %d, %d, %s\n", qctx->stime, qctx->etime, qctx->fsaddr, qctx->lsaddr, qctx->fdaddr, qctx->ldaddr, qctx->fsport, qctx->lsport, qctx->fdport, qctx->ldport, qctx->bpf_query);
+
+	printf("%u %u %u, %u, %u, %u, %u, %u, %u, %u, %s\n", qctx->stime, qctx->etime, qctx->fsaddr, qctx->lsaddr, qctx->fdaddr, qctx->ldaddr, qctx->fsport, qctx->lsport, qctx->fdport, qctx->ldport, qctx->bpf_query);
 	return 1;
 }
 /*----------------------------------------------------*/
@@ -243,43 +245,117 @@ get_file_info(query_context_t *qctx)
 static void
 search_with_query(query_context_t *qctx)
 {
+	LOG_MESSAGE("=== start search");
+
 	int *res;
+	int tmp;
 	get_file_info(qctx);
 
 	res = 
 	search_range_from_index_array(qctx->ictx, TYPE_SADDR, qctx->fsaddr, qctx->lsaddr);
+	write(qctx->c, "saddr\n", 6);
 
-	if (res != NULL)
-		printf("saddr: %d %d\n", res[0], res[1]);
-
-	res = 
-	search_range_from_index_array(qctx->ictx, TYPE_DADDR, qctx->fsaddr, qctx->lsaddr);
-
-	if (res != NULL)
-		printf("daddr: %d %d\n", res[0], res[1]);
-
-	res = 
-	search_range_from_index_array(qctx->ictx, TYPE_SPORT, qctx->fsaddr, qctx->lsaddr);
-
-	if (res != NULL)
-		printf("sport: %d %d\n", res[0], res[1]);
+	if (res != NULL) {
+		tmp = htonl((uint32_t)res[0]);
+		write(qctx->c, &tmp, sizeof(tmp));
+		tmp = htonl((uint32_t)res[1]);
+		write(qctx->c, &tmp, sizeof(tmp));
+	}
 
 	res = 
-	search_range_from_index_array(qctx->ictx, TYPE_DPORT, qctx->fsaddr, qctx->lsaddr);
+	search_range_from_index_array(qctx->ictx, TYPE_DADDR, qctx->fdaddr, qctx->ldaddr);
+	write(qctx->c, "daddr\n", 6);
 
-	if (res != NULL)
-		printf("dport: %d %d\n", res[0], res[1]);
+	if (res != NULL) {
+		tmp = htonl((uint32_t)res[0]);
+		write(qctx->c, &tmp, sizeof(tmp));
+		tmp = htonl((uint32_t)res[1]);
+		write(qctx->c, &tmp, sizeof(tmp));
+	}
+
+	res = 
+	search_range_from_index_array(qctx->ictx, TYPE_SPORT, qctx->fsport, qctx->lsport);
+	write(qctx->c, "sport\n", 6);
+
+	if (res != NULL) {
+		tmp = htonl((uint32_t)res[0]);
+		write(qctx->c, &tmp, sizeof(tmp));
+		write(qctx->c, "\n", 1);
+		tmp = htonl((uint32_t)res[1]);
+		write(qctx->c, &tmp, sizeof(tmp));
+		write(qctx->c, "\n", 1);
+	}
+
+	res = 
+	search_range_from_index_array(qctx->ictx, TYPE_DPORT, qctx->fdport, qctx->ldport);
+	write(qctx->c, "dport\n", 6);
+
+	if (res != NULL) {
+		tmp = htonl((uint32_t)res[0]);
+		write(qctx->c, &tmp, sizeof(tmp));
+		tmp = htonl((uint32_t)res[1]);
+		write(qctx->c, &tmp, sizeof(tmp));
+	}
 
 
-	u_char *pkt;
-	int len;
+	if (qctx->no_bpf)
+		return;
+
+
+	u_char *pkt = NULL;
+	int len = 0;
+
+	if (pkt == NULL) {
+		fprintf(stderr, "empty packets\n");
+		return;
+	}
 
 	struct bpf_insn *pc = qctx->bpf->bf_insns;
 	if (bpf_filter(pc, pkt, len, MAX_PACKET_SIZE) == 0)
 		return; // TODO implement
+
+	LOG_MESSAGE("=== close search");
 }
 /*----------------------------------------------------*/
 
+/*****************************************************************************/
+static inline void
+init_index_context(index_context_t *ictx, index_argument_t *iarg)
+{
+	int i;
+	memset(ictx, 0, sizeof(index_context_t));
+	ictx->ic_cpu = iarg->ia_cpu;
+	ictx->ic_idx = iarg->ia_idx;
+	//TODO implement
+}
+/*****************************************************************************/
+void *
+index_main(void *arg){
+	index_argument_t *iarg = (index_argument_t *)arg;
+	index_context_t ictx;
+	//struct epoll_event ev;
+
+	init_index_context(&ictx, iarg);
+	/*
+	bind_cpu(ictx.ic_cpu);
+	if (!epoll_init(&ictx, &ev)) {
+		pthread_exit((void *)0);
+	}
+	if (io_queue_init(MAX_IBUF_NUM, &ictx.ic_ioctx) != 0) {
+		perror("io_queue_init");
+		pthread_exit((void *)0);
+	}
+	if (mlockall(MCL_CURRENT) < 0) {
+		perror("mlockall");
+	}
+	fprintf(stderr, "Core %2d\tIndex %2d\tinitialization done.\n",
+			ictx.ic_cpu, ictx.ic_idx);
+	index_loop(&ictx);
+	free_index_buffers(&ictx);
+	pthread_exit((void *)0);
+	*/
+}
+/*****************************************************************************/
 
 /*----------------------------------------------------*/
 int
@@ -303,25 +379,27 @@ main(const int argc, const char *argv[])
 	init_query_context(qctx, ictx);
 
 	while ((c = accept(s, NULL, NULL)) >= 0) {
-		while ((len = read(c, buf, sizeof(buf)-1))) {
-			if (len <= 0) { perror("Error: read() failed\n"); exit(-1); }
-			buf[len] = 0;
-
-			if (parse_query(qctx, buf) < 0) {
-				fprintf(stderr, "Not enough query options\n");
-				write(c, "error", 5); //TODO edit
-				break;
-			}
-
-			if (compile_pcap(qctx) < 0) {
-				fprintf(stderr, "Cannot compile BPF filter\n");
-				write(c, "error", 5); //TODO edit
-				break;
-			}
-
-			search_with_query(qctx);
-
+		if ( (len = read(c, buf, sizeof(buf)-1)) <= 0 ) {
+			perror("Error: read() failed\n");
+			exit(-1);
 		}
+		buf[len] = 0;
+
+		qctx->c = c;
+		if (parse_query(qctx, buf) < 0) {
+			fprintf(stderr, "Not enough query options\n");
+			write(c, "error", 5); //TODO edit
+			break;
+		}
+
+		if (compile_pcap(qctx) < 0) {
+			fprintf(stderr, "Cannot compile BPF filter\n");
+			write(c, "error", 5); //TODO edit
+			break;
+		}
+
+		search_with_query(qctx);
+
 		close(c);
 	}
 	perror("Error:accept() failed");

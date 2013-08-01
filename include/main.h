@@ -1,4 +1,5 @@
 typedef struct query_context {
+	int c;
 	struct index_array_context *ictx;
 	struct bpf_program *bpf;
 	unsigned int stime;
@@ -14,3 +15,5 @@ typedef struct query_context {
 	char *bpf_query;
 	bool no_bpf;
 } query_context_t;
+
+void *index_main(void *arg);
