@@ -365,6 +365,7 @@ index_main(void *arg){
 	*/
 }
 /*****************************************************************************/
+/*
 static inline bool
 create_index_threads(engine_context_t *ictx, index_argument_t *iarg)
 {
@@ -386,6 +387,7 @@ create_index_threads(engine_context_t *ictx, index_argument_t *iarg)
 	//pthread_mutex_unlock(&ectx->ec_mutex);
 	return true;
 }
+*/
 /*----------------------------------------------------*/
 int
 main(const int argc, const char *argv[])
