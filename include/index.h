@@ -57,6 +57,7 @@ typedef struct index_array_context
 	index_array_node_t *dport;
 	bloom_filter_context_t *bctx;
 	int last_idx;
+	int cnt;
 } index_array_context_t;
 
 enum {
