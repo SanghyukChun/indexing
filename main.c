@@ -190,7 +190,6 @@ parse_query(query_context_t *qctx, char buf[])
 		}
 	} while ( (ptr = strtok(NULL, ",:/")) != NULL );
 
-	printf("s: %d\n", success);
 	if (success != 7)
 		return -1;
 	
@@ -306,8 +305,10 @@ search_with_query(query_context_t *qctx)
 	}
 
 
-	if (qctx->no_bpf)
+	if (qctx->no_bpf) {
+		LOG_MESSAGE("=== close search");
 		return;
+	}
 
 
 	u_char *pkt = NULL;
