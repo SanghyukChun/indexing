@@ -12,10 +12,15 @@
 
 typedef struct bloom_filter_context
 {
-	unsigned char *saddr;
-	unsigned char *daddr;
-	unsigned char *sport;
-	unsigned char *dport;
+	unsigned char *fsaddr; /* first pointer of saddr */
+	unsigned char *fdaddr; /* first pointer of daddr */
+	unsigned char *fsport; /* first pointer of sport */
+	unsigned char *fdport; /* first pointer of dport */
+
+	unsigned char *saddr; /* current saddr */
+	unsigned char *daddr; /* current saddr */
+	unsigned char *sport; /* current saddr */
+	unsigned char *dport; /* current saddr */
 	uint16_t fileID;
 } bloom_filter_context_t;
 
@@ -74,5 +79,6 @@ inline void print_index_array(index_array_context_t *ctx, int type);
 inline void write_index_array(index_array_context_t *ctx);
 inline void clean_index_array(index_array_context_t *ctx);
 inline void free_index_array(index_array_context_t *ctx);
+inline void close_file_event(index_array_context_t *ctx);
 
 #endif

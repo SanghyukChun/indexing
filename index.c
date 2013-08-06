@@ -5,7 +5,7 @@
 #include "index.h"
 #include "hashes.h"
 
-#define FILE_NUM_PER_SSD 1000
+#define FILE_NUM_PER_SSD 10
 #define ARRAY_SIZE 32768
 #define FILTER_SIZE 20
 #define NUM_HASHES 7
@@ -17,6 +17,7 @@
 //int ARRAY_SIZE;
 static inline void sort_array(index_array_context_t *ctx);
 static inline int binary_search(index_array_node_t *head, int start, int end, unsigned int data, int type);
+
 
 /*****************************************************************************/
 static void
@@ -71,16 +72,21 @@ sort_array(index_array_context_t *ctx)
 void
 init_bloom_filter(bloom_filter_context_t *ctx)
 {
-	ctx->saddr = (unsigned char *)calloc(FILTER_SIZE_BYTES, sizeof(unsigned char));
-	ctx->daddr = (unsigned char *)calloc(FILTER_SIZE_BYTES, sizeof(unsigned char));
-	ctx->sport = (unsigned char *)calloc(FILTER_SIZE_BYTES, sizeof(unsigned char));
-	ctx->dport = (unsigned char *)calloc(FILTER_SIZE_BYTES, sizeof(unsigned char));
+	ctx->fsaddr = (unsigned char *)calloc(FILTER_SIZE_BYTES * FILE_NUM_PER_SSD, sizeof(unsigned char));
+	ctx->fdaddr = (unsigned char *)calloc(FILTER_SIZE_BYTES * FILE_NUM_PER_SSD, sizeof(unsigned char));
+	ctx->fsport = (unsigned char *)calloc(FILTER_SIZE_BYTES * FILE_NUM_PER_SSD, sizeof(unsigned char));
+	ctx->fdport = (unsigned char *)calloc(FILTER_SIZE_BYTES * FILE_NUM_PER_SSD, sizeof(unsigned char));
+
+	ctx->saddr = ctx->fsaddr;
+	ctx->daddr = ctx->fdaddr;
+	ctx->sport = ctx->fsport;
+	ctx->dport = ctx->fdport;
 }
 /*****************************************************************************/
 static inline int
 init_array(index_array_node_t **head)
 {
-	index_array_node_t *p = (index_array_node_t *)calloc(ARRAY_SIZE, sizeof(index_array_node_t));
+	index_array_node_t *p = (index_array_node_t *)calloc(ARRAY_SIZE * FILE_NUM_PER_SSD, sizeof(index_array_node_t));
 
 	if (p == NULL)
 		return -1;
@@ -130,7 +136,8 @@ insert_into_bloom_filter_array(unsigned char *filter, unsigned int data)
 	unsigned int hash[NUM_HASHES];
 	int i;
 
-	get_hashes(hash, char_data);	
+	get_hashes(hash, char_data);
+	free(char_data);	
 
 	for (i = 0; i < NUM_HASHES; i++) {
 		/* xor-fold the hash into FILTER_SIZE bits */
@@ -172,8 +179,6 @@ insert_into_index_array(index_array_context_t *ctx, FlowMeta *meta)
 
 	if(ctx->last_idx >= ARRAY_SIZE-1)
 	{
-		sort_array(ctx);
-		write_index_array(ctx);
 		return 1;
 	}
 
@@ -191,7 +196,9 @@ find_in_filter(unsigned char *filter, unsigned int data)
 	unsigned char* char_data = (unsigned char* )calloc(4, sizeof(unsigned char));
 	convert_into_char(char_data, data);
 	unsigned int hash[NUM_HASHES];
+
 	get_hashes(hash, char_data);
+	free(char_data);
 	int i;
 
 	for (i = 0; i < NUM_HASHES; i++) {
@@ -495,3 +502,21 @@ print_index_array(index_array_context_t *ctx, int type)
 		print_array(ctx->dport);
 }
 /*****************************************************************************/
+
+
+
+
+inline void close_file_event(index_array_context_t *ctx)
+{
+	sort_array(ctx);
+	write_index_array(ctx);
+	ctx->saddr = &(ctx->saddr[ctx->last_idx+1]);
+	ctx->daddr = &(ctx->daddr[ctx->last_idx+1]);
+	ctx->sport = &(ctx->sport[ctx->last_idx+1]);
+	ctx->dport = &(ctx->dport[ctx->last_idx+1]);
+	ctx->last_idx = 0;
+	ctx->bctx->saddr = &(ctx->bctx->saddr[FILTER_SIZE_BYTES+1]);
+	ctx->bctx->daddr = &(ctx->bctx->daddr[FILTER_SIZE_BYTES+1]);
+	ctx->bctx->sport = &(ctx->bctx->sport[FILTER_SIZE_BYTES+1]);
+	ctx->bctx->dport = &(ctx->bctx->dport[FILTER_SIZE_BYTES+1]);
+}
