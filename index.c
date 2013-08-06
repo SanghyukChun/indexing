@@ -371,16 +371,25 @@ search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int
 
 
 
-
-
-
-
+/*****************************************************************************/
 void
 write_bloom_filter(bloom_filter_context_t *ctx)
 {
 	//TODO implement
 }
+/*****************************************************************************/
+inline void
+write_index_array(index_array_context_t *ctx)
+{
+	write_bloom_filter(ctx->bctx);
+	//TODO implement
+}
+/*****************************************************************************/
 
+
+
+
+/*****************************************************************************/
 void
 clean_filter(unsigned char *filter)
 {
@@ -390,7 +399,7 @@ clean_filter(unsigned char *filter)
 		filter[i] = 0;
 	}
 }
-
+/*****************************************************************************/
 void
 clean_bloom_filter(bloom_filter_context_t *ctx)
 {
@@ -399,45 +408,7 @@ clean_bloom_filter(bloom_filter_context_t *ctx)
 	clean_filter(ctx->sport);
 	clean_filter(ctx->dport);
 }
-
-void
-free_bloom_filter(bloom_filter_context_t *ctx)
-{
-	//TODO implement
-}
-
-
-
-static inline void
-print_array(index_array_node_t *head)
-{
-	int i;
-	for (i = 0; i <ARRAY_SIZE; i++)
-	{
-		index_array_node_t *node = &head[i];
-		printf("%u\n", node->value);
-	}
-}
-
-inline void
-print_index_array(index_array_context_t *ctx, int type)
-{
-	if (type | TYPE_SADDR)
-		print_array(ctx->saddr);
-	else if (type | TYPE_DADDR)
-		print_array(ctx->daddr);
-	else if (type | TYPE_SPORT)
-		print_array(ctx->sport);
-	else if (type | TYPE_DPORT)
-		print_array(ctx->dport);
-}
-
-inline void
-write_index_array(index_array_context_t *ctx)
-{
-	//TODO implement
-}
-
+/*****************************************************************************/
 inline static void 
 clean_array(index_array_node_t *head)
 {
@@ -451,7 +422,7 @@ clean_array(index_array_node_t *head)
 		node->value = 0;
 	}
 }
-
+/*****************************************************************************/
 inline void 
 clean_index_array(index_array_context_t *ctx)
 {
@@ -468,12 +439,24 @@ clean_index_array(index_array_context_t *ctx)
 
 	LOG_MESSAGE("=== start clean");
 }
+/*****************************************************************************/
 
+
+
+
+/*****************************************************************************/
+void
+free_bloom_filter(bloom_filter_context_t *ctx)
+{
+	//TODO implement
+}
+/*****************************************************************************/
 inline void
 free_index_array(index_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start free");
 
+	free_bloom_filter(ctx->bctx);
 	free(ctx->saddr);
 	free(ctx->daddr);
 	free(ctx->sport);
@@ -482,3 +465,33 @@ free_index_array(index_array_context_t *ctx)
 
 	LOG_MESSAGE("=== start free");
 }
+/*****************************************************************************/
+
+
+
+
+/*****************************************************************************/
+static inline void
+print_array(index_array_node_t *head)
+{
+	int i;
+	for (i = 0; i <ARRAY_SIZE; i++)
+	{
+		index_array_node_t *node = &head[i];
+		printf("%u\n", node->value);
+	}
+}
+/*****************************************************************************/
+inline void
+print_index_array(index_array_context_t *ctx, int type)
+{
+	if (type | TYPE_SADDR)
+		print_array(ctx->saddr);
+	else if (type | TYPE_DADDR)
+		print_array(ctx->daddr);
+	else if (type | TYPE_SPORT)
+		print_array(ctx->sport);
+	else if (type | TYPE_DPORT)
+		print_array(ctx->dport);
+}
+/*****************************************************************************/
