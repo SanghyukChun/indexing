@@ -11,9 +11,12 @@
  * @param ctx [description]
  */
 static void
-index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int size)
+index_main(index_context_t *ictx)
 {
-	init_index_array(ctx, bctx, size);
+	memset(ictx, 0, sizeof(index_context_t));
+	bloom_filter_context_t bfctx;
+	index_array_context_t  iactx;
+	init_index_context(ictx, &bfctx, &iactx);
 
 	srand(time(NULL));
 
@@ -21,7 +24,6 @@ index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 	FlowInfo *info = &meta->flowinfo;
 
 	int cnt, i;
-	unsigned int value = 0;
 	for (cnt = 0; cnt < 5; cnt++)
 	{
 		for (i = 0; i < 30000; i++) {
@@ -30,11 +32,11 @@ index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
 			info->sport = rand();
 			info->dport = rand();
 
-			value = info->saddr;
-			if ((insert_into_index_array(ctx, meta)) < 0)
+			
+			if ((insert_index(ictx->ic_index_array, meta)) < 0)
 				perror("insert error");
 		}
-		close_file_event(ctx);
+		close_file_event(ictx);
 		/*print_index_array(ctx, TYPE_SADDR);*/
 		/*int *search_result = search_from_index_array(ctx, TYPE_SADDR, value);*/
 		/*
@@ -52,7 +54,7 @@ index_array_main(index_array_context_t *ctx, bloom_filter_context_t *bctx, int s
  * @param ctx [description]
  */
 static void
-index_array_exit(index_array_context_t *ctx)
+index_exit(index_context_t *ictx)
 {
 	//free_index_array(ctx);	
 }
@@ -66,9 +68,8 @@ index_array_exit(index_array_context_t *ctx)
 int
 main(int argc, char *argv[])
 {
-	index_array_context_t *ctx = (index_array_context_t *)malloc(sizeof(index_array_context_t));
-	bloom_filter_context_t *bctx = (bloom_filter_context_t *)malloc(sizeof(bloom_filter_context_t));
-	index_array_main(ctx, bctx, 0);
-	index_array_exit(ctx);
+	index_context_t ictx;
+	index_main(&ictx);
+	index_exit(&ictx);
 	return 0;
 }

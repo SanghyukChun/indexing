@@ -5,7 +5,9 @@
 #include "index.h"
 #include "hashes.h"
 
+// TODO rename as FILE_NUM_PER_INDEX_THREAD
 #define FILE_NUM_PER_SSD 10
+// TODO remame ARRAY_SIZE
 #define ARRAY_SIZE 32768
 #define FILTER_SIZE 20
 #define NUM_HASHES 7
@@ -51,10 +53,10 @@ sort_array(index_array_context_t *ctx)
 	gettimeofday(&t1, NULL);
 	#endif
 
-	QSORT(struct index_array_node, ctx->saddr, ctx->last_idx+1, COMPARE_VALUE);
-	QSORT(struct index_array_node, ctx->daddr, ctx->last_idx+1, COMPARE_VALUE);
-	QSORT(struct index_array_node, ctx->sport, ctx->last_idx+1, COMPARE_VALUE);
-	QSORT(struct index_array_node, ctx->dport, ctx->last_idx+1, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->saddr, ctx->cnt+1, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->daddr, ctx->cnt+1, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->sport, ctx->cnt+1, COMPARE_VALUE);
+	QSORT(struct index_array_node, ctx->dport, ctx->cnt+1, COMPARE_VALUE);
 
 	#ifdef PRINT_TIME
 	gettimeofday(&t2, NULL);
@@ -69,21 +71,19 @@ sort_array(index_array_context_t *ctx)
 
 
 /*****************************************************************************/
-void
-init_bloom_filter(bloom_filter_context_t *ctx)
+inline int
+init_filter(unsigned char **head)
 {
-	ctx->fsaddr = (unsigned char *)calloc(FILTER_SIZE_BYTES * FILE_NUM_PER_SSD, sizeof(unsigned char));
-	ctx->fdaddr = (unsigned char *)calloc(FILTER_SIZE_BYTES * FILE_NUM_PER_SSD, sizeof(unsigned char));
-	ctx->fsport = (unsigned char *)calloc(FILTER_SIZE_BYTES * FILE_NUM_PER_SSD, sizeof(unsigned char));
-	ctx->fdport = (unsigned char *)calloc(FILTER_SIZE_BYTES * FILE_NUM_PER_SSD, sizeof(unsigned char));
+	unsigned char *p = (unsigned char *)calloc(FILTER_SIZE_BYTES * FILE_NUM_PER_SSD, sizeof(unsigned char));
 
-	ctx->saddr = ctx->fsaddr;
-	ctx->daddr = ctx->fdaddr;
-	ctx->sport = ctx->fsport;
-	ctx->dport = ctx->fdport;
+	if (p == NULL)
+		return -1;
+
+	*head = p;
+	return 0;
 }
 /*****************************************************************************/
-static inline int
+inline int
 init_array(index_array_node_t **head)
 {
 	index_array_node_t *p = (index_array_node_t *)calloc(ARRAY_SIZE * FILE_NUM_PER_SSD, sizeof(index_array_node_t));
@@ -96,35 +96,61 @@ init_array(index_array_node_t **head)
 }
 /*****************************************************************************/
 inline void
-init_index_array(index_array_context_t *ctx, bloom_filter_context_t *bctx, int size)
+init_index_context(index_context_t *ictx, bloom_filter_context_t *bfctx, index_array_context_t *iactx)
 {
-	//ARRAY_SIZE = size;
-	LOG_MESSAGE("=== open init index array");
+	LOG_MESSAGE("=== start init");
+	bfctx = (bloom_filter_context_t *)calloc(FILE_NUM_PER_SSD, sizeof(bloom_filter_context_t));
+	iactx = (index_array_context_t  *)calloc(FILE_NUM_PER_SSD, sizeof(index_array_context_t));
 
-	if (init_array(&ctx->saddr) == -1)
+	ictx->ic_bloom_filter_head = bfctx;
+	ictx->ic_index_array_head  = iactx;
+
+	/* allocate memory for bloom filter bitmap */
+	if(init_filter(&ictx->ic_bloom_filter_head->saddr) == -1)
 		goto fail;
-	if (init_array(&ctx->daddr) == -1)
+	if(init_filter(&ictx->ic_bloom_filter_head->daddr) == -1)
 		goto fail;
-	if (init_array(&ctx->sport) == -1)
+	if(init_filter(&ictx->ic_bloom_filter_head->sport) == -1)
 		goto fail;
-	if (init_array(&ctx->dport) == -1)
+	if(init_filter(&ictx->ic_bloom_filter_head->dport) == -1)
 		goto fail;
 
-	init_bloom_filter(bctx);
-	ctx->bctx = bctx;
-	ctx->last_idx = -1;
-	ctx->cnt = 0;
+	/* allocate memory for index array list */
+	if (init_array(&ictx->ic_index_array_head->saddr) == -1)
+		goto fail;
+	if (init_array(&ictx->ic_index_array_head->daddr) == -1)
+		goto fail;
+	if (init_array(&ictx->ic_index_array_head->sport) == -1)
+		goto fail;
+	if (init_array(&ictx->ic_index_array_head->dport) == -1)
+		goto fail;
 
-	LOG_MESSAGE("=== close init index array");
+	int i;
+	bloom_filter_context_t *bf;
+	index_array_context_t  *ia;
+	for (i = 0; i < FILE_NUM_PER_SSD; i++) {
+		bf = &ictx->ic_bloom_filter_head[i];
+		bf->saddr = &ictx->ic_bloom_filter_head->saddr[i * FILTER_SIZE_BYTES];
+		bf->daddr = &ictx->ic_bloom_filter_head->daddr[i * FILTER_SIZE_BYTES];
+		bf->sport = &ictx->ic_bloom_filter_head->sport[i * FILTER_SIZE_BYTES];
+		bf->dport = &ictx->ic_bloom_filter_head->dport[i * FILTER_SIZE_BYTES];
+
+		ia = &ictx->ic_index_array_head[i];
+		ia->cnt = -1;
+		ia->filter = bf;
+	}
+
+	ictx->ic_cnt = 0;
+	ictx->ic_index_array = &ictx->ic_index_array_head[0];
+	LOG_MESSAGE("=== close init");
+
 	return;
 
 	fail:
 		fprintf(stderr, "fail to initialize array\n");
 		exit(-1);
-	
 }
 /*****************************************************************************/
-
 
 
 
@@ -159,26 +185,27 @@ insert_into_bloom_filter(bloom_filter_context_t *ctx, FlowMeta *meta)
 }
 /*****************************************************************************/
 static inline void
-insert_index(index_array_context_t *ctx, index_array_node_t *head, unsigned int data, FlowMeta *meta)
+insert_into_index_array(index_array_context_t *ctx, index_array_node_t *head, unsigned int data, FlowMeta *meta)
 {
-	index_array_node_t *node = &head[ctx->last_idx+1];
+	index_array_node_t *node = &head[ctx->cnt+1];
 	node->value  = data;
 	node->fileID = meta->fileID;
 	node->offset = meta->offset;
 }
 /*****************************************************************************/
 inline int
-insert_into_index_array(index_array_context_t *ctx, FlowMeta *meta)
+insert_index(index_array_context_t *ctx, FlowMeta *meta)
 {
-	insert_index(ctx, ctx->saddr, meta->flowinfo.saddr, meta);
-	insert_index(ctx, ctx->daddr, meta->flowinfo.daddr, meta);
-	insert_index(ctx, ctx->sport, meta->flowinfo.sport, meta);
-	insert_index(ctx, ctx->dport, meta->flowinfo.dport, meta);
-	insert_into_bloom_filter(ctx->bctx, meta);
+	/* create_index? insert_index? */
+	insert_into_index_array(ctx, ctx->saddr, meta->flowinfo.saddr, meta);
+	insert_into_index_array(ctx, ctx->daddr, meta->flowinfo.daddr, meta);
+	insert_into_index_array(ctx, ctx->sport, meta->flowinfo.sport, meta);
+	insert_into_index_array(ctx, ctx->dport, meta->flowinfo.dport, meta);
+	insert_into_bloom_filter(ctx->filter, meta);
 
-	ctx->last_idx = ctx->last_idx+1;
+	ctx->cnt = ctx->cnt+1;
 
-	if(ctx->last_idx >= ARRAY_SIZE * FILE_NUM_PER_SSD -1)
+	if(ctx->cnt >= ARRAY_SIZE * FILE_NUM_PER_SSD -1)
 	{
 		return 1;
 	}
@@ -289,28 +316,28 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 
 	switch (type) {
 		case TYPE_SADDR:
-			if (search_from_bloom_filter(ctx->bctx, TYPE_SADDR, data)) {
+			if (search_from_bloom_filter(ctx->filter, TYPE_SADDR, data)) {
 				idx   = binary_search  (ctx->saddr, 0, ctx->cnt, data, SEARCH_EXACT);
 				start = search_backward(ctx->saddr, idx, data);	
 				end   = search_forward (ctx->saddr, idx, data);
 			}
 			break;
 		case TYPE_DADDR:
-			if (search_from_bloom_filter(ctx->bctx, TYPE_DADDR, data)) {
+			if (search_from_bloom_filter(ctx->filter, TYPE_DADDR, data)) {
 				idx   = binary_search  (ctx->daddr, 0, ctx->cnt, data, SEARCH_EXACT);
 				start = search_backward(ctx->daddr, idx, data);
 				end   = search_forward (ctx->daddr, idx, data);
 			}
 			break;
 		case TYPE_SPORT:
-			if (search_from_bloom_filter(ctx->bctx, TYPE_SPORT, data)){
+			if (search_from_bloom_filter(ctx->filter, TYPE_SPORT, data)){
 				idx   = binary_search  (ctx->sport, 0, ctx->cnt, data, SEARCH_EXACT);
 				start = search_backward(ctx->sport, idx, data);
 				end   = search_forward (ctx->sport, idx, data);
 			}
 			break;
 		case TYPE_DPORT:
-			if (search_from_bloom_filter(ctx->bctx, TYPE_DPORT, data)){
+			if (search_from_bloom_filter(ctx->filter, TYPE_DPORT, data)){
 				idx   = binary_search  (ctx->dport, 0, ctx->cnt, data, SEARCH_EXACT);
 				start = search_backward(ctx->dport, idx, data);
 				end   = search_forward (ctx->dport, idx, data);
@@ -389,7 +416,7 @@ write_bloom_filter(bloom_filter_context_t *ctx)
 inline void
 write_index_array(index_array_context_t *ctx)
 {
-	write_bloom_filter(ctx->bctx);
+	write_bloom_filter(ctx->filter);
 	//TODO implement
 }
 /*****************************************************************************/
@@ -441,9 +468,9 @@ clean_index_array(index_array_context_t *ctx)
 	clean_array(ctx->sport);
 	clean_array(ctx->dport);
 
-	clean_bloom_filter(ctx->bctx);
+	clean_bloom_filter(ctx->filter);
 
-	ctx->last_idx = -1;
+	ctx->cnt = -1;
 
 	LOG_MESSAGE("=== start clean");
 }
@@ -485,11 +512,6 @@ print_index_array(index_array_context_t *ctx, int type)
 void
 free_bloom_filter(bloom_filter_context_t *ctx)
 {
-	free(ctx->fsaddr);
-	free(ctx->fdaddr);
-	free(ctx->fsport);
-	free(ctx->fdport);
-
 	free(ctx->saddr);
 	free(ctx->daddr);
 	free(ctx->sport);
@@ -503,7 +525,7 @@ free_index_array(index_array_context_t *ctx)
 {
 	LOG_MESSAGE("=== start free");
 
-	free_bloom_filter(ctx->bctx);
+	free_bloom_filter(ctx->filter);
 	free(ctx->saddr);
 	free(ctx->daddr);
 	free(ctx->sport);
@@ -518,19 +540,30 @@ free_index_array(index_array_context_t *ctx)
 
 
 /*****************************************************************************/
-inline void close_file_event(index_array_context_t *ctx)
+inline void close_file_event(index_context_t *ictx)
 {
-	sort_array(ctx);
+	sort_array(ictx->ic_index_array);
+	
+	index_array_context_t *old_ia = ictx->ic_index_array;
+	ictx->ic_cnt += 1;
+	index_array_context_t *new_ia = &ictx->ic_index_array_head[ictx->ic_cnt];
+	
+	new_ia->saddr = &old_ia->saddr[old_ia->cnt];
+	new_ia->daddr = &old_ia->daddr[old_ia->cnt];
+	new_ia->sport = &old_ia->sport[old_ia->cnt];
+	new_ia->dport = &old_ia->dport[old_ia->cnt];
+
+	ictx->ic_index_array = new_ia;
+	/*
 	write_index_array(ctx);
-	ctx->saddr = &(ctx->saddr[ctx->last_idx+1]);
-	ctx->daddr = &(ctx->daddr[ctx->last_idx+1]);
-	ctx->sport = &(ctx->sport[ctx->last_idx+1]);
-	ctx->dport = &(ctx->dport[ctx->last_idx+1]);
-	ctx->cnt += ctx->last_idx;
-	ctx->last_idx = 0;
-	ctx->bctx->saddr = &(ctx->bctx->saddr[FILTER_SIZE_BYTES+1]);
-	ctx->bctx->daddr = &(ctx->bctx->daddr[FILTER_SIZE_BYTES+1]);
-	ctx->bctx->sport = &(ctx->bctx->sport[FILTER_SIZE_BYTES+1]);
-	ctx->bctx->dport = &(ctx->bctx->dport[FILTER_SIZE_BYTES+1]);
+	ctx->saddr = &(ctx->saddr[ctx->cnt+1]);
+	ctx->daddr = &(ctx->daddr[ctx->cnt+1]);
+	ctx->sport = &(ctx->sport[ctx->cnt+1]);
+	ctx->dport = &(ctx->dport[ctx->cnt+1]);
+	ctx->filter->saddr = &(ctx->filter->saddr[FILTER_SIZE_BYTES+1]);
+	ctx->filter->daddr = &(ctx->filter->daddr[FILTER_SIZE_BYTES+1]);
+	ctx->filter->sport = &(ctx->filter->sport[FILTER_SIZE_BYTES+1]);
+	ctx->filter->dport = &(ctx->filter->dport[FILTER_SIZE_BYTES+1]);
+	*/
 }
 /*****************************************************************************/
