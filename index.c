@@ -178,7 +178,7 @@ insert_into_index_array(index_array_context_t *ctx, FlowMeta *meta)
 
 	ctx->last_idx = ctx->last_idx+1;
 
-	if(ctx->last_idx >= ARRAY_SIZE-1)
+	if(ctx->last_idx >= ARRAY_SIZE * FILE_NUM_PER_SSD -1)
 	{
 		return 1;
 	}
@@ -453,32 +453,6 @@ clean_index_array(index_array_context_t *ctx)
 
 
 /*****************************************************************************/
-void
-free_bloom_filter(bloom_filter_context_t *ctx)
-{
-	//TODO implement
-}
-/*****************************************************************************/
-inline void
-free_index_array(index_array_context_t *ctx)
-{
-	LOG_MESSAGE("=== start free");
-
-	free_bloom_filter(ctx->bctx);
-	free(ctx->saddr);
-	free(ctx->daddr);
-	free(ctx->sport);
-	free(ctx->dport);
-	free(ctx);
-
-	LOG_MESSAGE("=== start free");
-}
-/*****************************************************************************/
-
-
-
-
-/*****************************************************************************/
 static inline void
 print_array(index_array_node_t *head)
 {
@@ -507,6 +481,43 @@ print_index_array(index_array_context_t *ctx, int type)
 
 
 
+/*****************************************************************************/
+void
+free_bloom_filter(bloom_filter_context_t *ctx)
+{
+	free(ctx->fsaddr);
+	free(ctx->fdaddr);
+	free(ctx->fsport);
+	free(ctx->fdport);
+
+	free(ctx->saddr);
+	free(ctx->daddr);
+	free(ctx->sport);
+	free(ctx->dport);
+
+	free(ctx);
+}
+/*****************************************************************************/
+inline void
+free_index_array(index_array_context_t *ctx)
+{
+	LOG_MESSAGE("=== start free");
+
+	free_bloom_filter(ctx->bctx);
+	free(ctx->saddr);
+	free(ctx->daddr);
+	free(ctx->sport);
+	free(ctx->dport);
+	free(ctx);
+
+	LOG_MESSAGE("=== start free");
+}
+/*****************************************************************************/
+
+
+
+
+/*****************************************************************************/
 inline void close_file_event(index_array_context_t *ctx)
 {
 	sort_array(ctx);
@@ -522,3 +533,4 @@ inline void close_file_event(index_array_context_t *ctx)
 	ctx->bctx->sport = &(ctx->bctx->sport[FILTER_SIZE_BYTES+1]);
 	ctx->bctx->dport = &(ctx->bctx->dport[FILTER_SIZE_BYTES+1]);
 }
+/*****************************************************************************/
