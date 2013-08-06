@@ -306,7 +306,7 @@ search_forward(index_array_node_t *head, int idx, unsigned int data) {
 }
 /*****************************************************************************/
 inline int *
-search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
+search_index_single(index_array_context_t *ctx, int type, unsigned int data)
 {
 	static int ret[2];
 
@@ -358,12 +358,12 @@ search_from_index_array(index_array_context_t *ctx, int type, unsigned int data)
 }
 /*****************************************************************************/
 inline int *
-search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int start, unsigned int end)
+search_index(index_array_context_t *ctx, int type, unsigned int start, unsigned int end)
 {
 	if (start > end) {
 		return NULL;
 	} else if (start == end) {
-		return search_from_index_array(ctx, type, start);
+		return search_index_single(ctx, type, start);
 	}
 
 	int s_start, e_end;

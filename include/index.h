@@ -78,8 +78,7 @@ enum {
 
 inline void init_index_context(index_context_t *ictx, bloom_filter_context_t *bfctx, index_array_context_t *iactx);
 inline int insert_index(index_array_context_t *ctx, FlowMeta *meta);
-inline int* search_from_index_array(index_array_context_t *ctx, int type, unsigned int data);
-inline int* search_range_from_index_array(index_array_context_t *ctx, int type, unsigned int start, unsigned int end);
+inline int* search_index(index_array_context_t *ctx, int type, unsigned int start, unsigned int end);
 inline void print_index_array(index_array_context_t *ctx, int type);
 inline void write_index_array(index_array_context_t *ctx);
 inline void clean_index_array(index_array_context_t *ctx);
