@@ -5,7 +5,7 @@ GCC_OPT = -m64 -Wall -O3
 
 TARGET = index
 
-OBJS = main.o index.o bloom_filter.o hashes.o
+OBJS = main_old.o index.o hashes.o
 INC = -I./include
 
 LIBS = -lpthread -lpcap 

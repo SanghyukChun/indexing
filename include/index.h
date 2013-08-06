@@ -1,12 +1,23 @@
+#ifndef _INDEX_H_
+#define _INDEX_H_
+
 #include <linux/types.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <stdbool.h>
 
 #include "util.h"
-#include "bloom_filter.h"
 #include "qsort.h"
 #define COMPARE_VALUE(a,b) ( (a)->value < (b)->value )
+
+typedef struct bloom_filter_context
+{
+	unsigned char *saddr;
+	unsigned char *daddr;
+	unsigned char *sport;
+	unsigned char *dport;
+	uint16_t fileID;
+} bloom_filter_context_t;
 
 typedef struct index_argument {
 	int ia_cpu;
@@ -42,6 +53,19 @@ typedef struct index_array_context
 	int last_idx;
 } index_array_context_t;
 
+enum {
+	TYPE_SADDR = 1,
+	TYPE_DADDR = 2,
+	TYPE_SPORT = 4,
+	TYPE_DPORT = 8
+};
+
+enum {
+	SEARCH_EXACT,
+	SEARCH_MIN,
+	SEARCH_MAX
+};
+
 inline void init_index_array(index_array_context_t *ctx, bloom_filter_context_t *bctx, int size);
 inline int insert_into_index_array(index_array_context_t *ctx, FlowMeta *meta);
 inline int* search_from_index_array(index_array_context_t *ctx, int type, unsigned int data);
@@ -50,3 +74,5 @@ inline void print_index_array(index_array_context_t *ctx, int type);
 inline void write_index_array(index_array_context_t *ctx);
 inline void clean_index_array(index_array_context_t *ctx);
 inline void free_index_array(index_array_context_t *ctx);
+
+#endif

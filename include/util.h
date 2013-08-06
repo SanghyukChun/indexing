@@ -30,11 +30,4 @@ typedef struct FlowMeta {
     uint32_t offset;
 } FlowMeta;
 
-enum {
-	TYPE_SADDR = 1,
-	TYPE_DADDR = 2,
-	TYPE_SPORT = 4,
-	TYPE_DPORT = 8
-};
-
 #endif
