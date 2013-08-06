@@ -128,7 +128,7 @@ parse_query(query_context_t *qctx, char buf[])
 
 		else if (strcmp(ptr, "src_ip") == 0) {
 			ptr = strtok(NULL, ",:/");
-			if (strtoul(ptr, NULL, 0) < 0) {
+			if (strcmp(ptr, "-1") == 0) {
 				qctx->fsaddr = -1;
 				qctx->lsaddr = -1;
 			} else {
@@ -141,7 +141,7 @@ parse_query(query_context_t *qctx, char buf[])
 
 		else if (strcmp(ptr, "dst_ip") == 0) {
 			ptr = strtok(NULL, ",:/");
-			if (atoi(ptr) < strtoul(ptr, NULL, 0)) {
+			if (strcmp(ptr, "-1") == 0) {
 				qctx->fdaddr = -1;
 				qctx->ldaddr = -1;
 			} else {
@@ -154,7 +154,7 @@ parse_query(query_context_t *qctx, char buf[])
 
 		else if (strcmp(ptr, "src_port") == 0) {
 			ptr = strtok(NULL, ",:/");
-			if (strtoul(ptr, NULL, 0) < 0) {
+			if (strcmp(ptr, "-1") == 0) {
 				qctx->fsport = -1;
 				qctx->lsport = -1;
 			} else {
@@ -167,7 +167,7 @@ parse_query(query_context_t *qctx, char buf[])
 
 		else if (strcmp(ptr, "dst_port") == 0) {
 			ptr = strtok(NULL, ",:/");
-			if (atoi(ptr) < 0) {
+			if (strcmp(ptr, "-1") == 0) {
 				qctx->fdport = -1;
 				qctx->ldport = -1;
 			} else {
@@ -184,10 +184,13 @@ parse_query(query_context_t *qctx, char buf[])
 			success++;
 		}
 
-		else 
+		else {
+			printf("else %s\n", ptr);
 			return -1;
+		}
 	} while ( (ptr = strtok(NULL, ",:/")) != NULL );
 
+	printf("s: %d\n", success);
 	if (success != 7)
 		return -1;
 	
@@ -203,28 +206,30 @@ parse_query(query_context_t *qctx, char buf[])
 
 /*----------------------------------------------------*/
 static void
-insert_rand_data(index_array_context_t *ictx, bloom_filter_context_t *bctx, int size)
+insert_rand_data(index_array_context_t *ctx, bloom_filter_context_t *bctx, int size)
 {
-	init_index_array(ictx, bctx, size);
-
-	bool done = false;
+	init_index_array(ctx, bctx, size);
 
 	srand(time(NULL));
 
 	FlowMeta *meta = (FlowMeta *)malloc(sizeof(FlowMeta));
 	FlowInfo *info = &meta->flowinfo;
 
-	while(!done) {
-		info->saddr = rand();
-		info->daddr = rand();
-		info->sport = rand();
-		info->dport = rand();
+	int cnt, i;
+	for (cnt = 0; cnt < 5; cnt++)
+	{
+		for (i = 0; i < 30000; i++) {
+			info->saddr = rand();
+			info->daddr = rand();
+			info->sport = rand();
+			info->dport = rand();
 
-		if (insert_into_index_array(ictx, meta))
-			done = true;
+			if ((insert_into_index_array(ctx, meta)) < 0)
+				perror("insert error");
+		}
+		close_file_event(ctx);
 	}
 
-	write_index_array(ictx);
 }
 
 static void

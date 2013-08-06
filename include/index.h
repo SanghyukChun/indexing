@@ -17,11 +17,12 @@ typedef struct bloom_filter_context
 	unsigned char *fsport; /* first pointer of sport */
 	unsigned char *fdport; /* first pointer of dport */
 
-	unsigned char *saddr; /* current saddr */
-	unsigned char *daddr; /* current saddr */
-	unsigned char *sport; /* current saddr */
-	unsigned char *dport; /* current saddr */
-	uint16_t fileID;
+	unsigned char *saddr;  /* current saddr */
+	unsigned char *daddr;  /* current saddr */
+	unsigned char *sport;  /* current saddr */
+	unsigned char *dport;  /* current saddr */
+
+	uint16_t fileID;       /* file id of given bloom filter */
 } bloom_filter_context_t;
 
 typedef struct index_argument {

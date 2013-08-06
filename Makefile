@@ -1,11 +1,11 @@
 .PHONY: clean
 
 GCC = gcc
-GCC_OPT = -m64 -Wall -O3
+GCC_OPT = -m64 -Wall -g
 
 TARGET = index
 
-OBJS = main_old.o index.o hashes.o
+OBJS = main.o index.o hashes.o
 INC = -I./include
 
 LIBS = -lpthread -lpcap 
