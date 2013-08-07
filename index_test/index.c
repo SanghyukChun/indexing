@@ -95,27 +95,6 @@ void init_indexer_context(indexer_context_t *ictx)
 
 
 /*****************************************************************************/
-int search_in_filter(unsigned char *filter, unsigned int data)
-{
-	unsigned char char_data[4];
-	convert_into_char(char_data, data);
-	unsigned int hash[NUM_HASHES];
-
-	get_hashes(hash, char_data);
-	int i;
-	for (i=0; i<NUM_HASHES; i++) {
-		hash[i] = (hash[i] >> FILTER_SIZE) ^ (hash[i] & FILTER_BITMASK);
-		if (!(filter[hash[i] >> 3] & (1 << (hash[i] & 7))))
-			return 0;
-	}
-	return 1;
-}
-/*****************************************************************************/
-
-
-
-
-/*****************************************************************************/
 void insert_into_bloom_filter(unsigned char *filter, unsigned int data)
 {
 	unsigned char char_data[4];
@@ -160,6 +139,172 @@ void create_index(indexer_context_t *ictx, FlowMeta *meta_block, int size)
 	for (i=0; i<size; i++) {
 		insert_index(ictx, &meta_block[i]);
 	}
+}
+/*****************************************************************************/
+
+
+
+
+/*****************************************************************************/
+int search_filter(unsigned char *filter, unsigned int data)
+{
+	unsigned char char_data[4];
+	convert_into_char(char_data, data);
+	unsigned int hash[NUM_HASHES];
+
+	get_hashes(hash, char_data);
+	int i;
+	for (i=0; i<NUM_HASHES; i++) {
+		hash[i] = (hash[i] >> FILTER_SIZE) ^ (hash[i] & FILTER_BITMASK);
+		if (!(filter[hash[i] >> 3] & (1 << (hash[i] & 7))))
+			return 0;
+	}
+	return 1;
+}
+/*****************************************************************************/
+int search_from_bloom_filter(bloom_filter_t *filter, int type, unsigned int data)
+{
+	int res = -1;
+	switch(type) {
+		case TYPE_SADDR:
+			res = search_filter(filter->saddr, data);
+			break;
+		case TYPE_DADDR:
+			res = search_filter(filter->daddr, data);
+			break;
+		case TYPE_SPORT:
+			res = search_filter(filter->sport, data);
+			break;
+		case TYPE_DPORT:
+			res = search_filter(filter->dport, data);
+			break;
+		default:
+			fprintf(stderr, "Unknown type\n");
+			return -1;
+	}
+
+	if (res)
+		return -1;
+	else
+		return 0;
+}
+/*****************************************************************************/
+int binary_search(array_node_t *head, int start, int end, unsigned int data, int type)
+{
+	if (start > end) {
+		switch(type) {
+			case SEARCH_EXACT:
+				return -1;
+			case SEARCH_MIN:
+				return start;
+			case SEARCH_MAX:
+				return end;
+			default:
+				fprintf(stderr, "Unknown type\n");
+				return -1;
+		}
+	}
+
+	int mid = (start + end) / 2;
+	unsigned int mid_val = head[mid].value;
+
+	if (mid_val > data)
+		return binary_search(head, start, mid-1, data, type);
+	else if (mid_val < data)
+		return binary_search(head, mid+1, end, data, type);
+
+	return mid;
+}
+/*****************************************************************************/
+int search_backward(array_node_t *head, int idx, unsigned int data) {
+	if (idx == -1)
+		return -1;
+
+	while( (head[idx].value == data) && (idx > -1) )
+		idx --;
+
+	return idx + 1;
+}
+/*****************************************************************************/
+int search_forward(array_node_t *head, int idx, unsigned int data, int size) {
+	if (idx == -1)
+		return -1;
+
+	while( (head[idx].value == data) && (idx < size) )
+		idx ++;
+
+	return idx - 1;
+}
+/*****************************************************************************/
+void search_single_index(indexer_context_t *ictx, int type, unsigned int val, int res[])
+{
+	int idx, min_idx, max_idx;
+	index_array_t *ia = &ictx->ic_index[ictx->ic_array_idx];
+
+	switch(type) {
+		case TYPE_SADDR:
+			idx     = binary_search  (ia->saddr, 0, ia->cnt, val, SEARCH_EXACT);
+			max_idx = search_forward (ia->saddr, idx, val, ia->cnt);
+			min_idx = search_backward(ia->saddr, idx, val);
+			break;
+		case TYPE_DADDR:
+			idx     = binary_search  (ia->daddr, 0, ia->cnt, val, SEARCH_EXACT);
+			max_idx = search_forward (ia->daddr, idx, val, ia->cnt);
+			min_idx = search_backward(ia->daddr, idx, val);
+			break;
+		case TYPE_SPORT:
+			idx     = binary_search  (ia->sport, 0, ia->cnt, val, SEARCH_EXACT);
+			max_idx = search_forward (ia->sport, idx, val, ia->cnt);
+			min_idx = search_backward(ia->sport, idx, val);
+			break;
+		case TYPE_DPORT:
+			idx     = binary_search  (ia->dport, 0, ia->cnt, val, SEARCH_EXACT);
+			max_idx = search_forward (ia->dport, idx, val, ia->cnt);
+			min_idx = search_backward(ia->dport, idx, val);
+			break;
+		default:
+			fprintf(stderr, "Unknown type\n");
+			return;
+	}
+
+	res[0] = min_idx;
+	res[1] = max_idx;
+}
+/*****************************************************************************/
+void search_index(indexer_context_t *ictx, int type, unsigned int min_val, unsigned int max_val, int res[])
+{
+	if (min_val > max_val)
+		return;
+	else if (min_val == max_val)
+		return search_single_index(ictx, type, min_val, res);
+
+	int min_idx, max_idx;
+	index_array_t *ia = &ictx->ic_index[ictx->ic_array_idx];
+
+	switch(type) {
+		case TYPE_SADDR:
+			min_idx = binary_search(ia->saddr, 0, ia->cnt, min_val, SEARCH_MIN);
+			max_idx = binary_search(ia->saddr, 0, ia->cnt, max_val, SEARCH_MAX);
+			break;
+		case TYPE_DADDR:
+			min_idx = binary_search(ia->daddr, 0, ia->cnt, min_val, SEARCH_MIN);
+			max_idx = binary_search(ia->daddr, 0, ia->cnt, max_val, SEARCH_MAX);
+			break;
+		case TYPE_SPORT:
+			min_idx = binary_search(ia->sport, 0, ia->cnt, min_val, SEARCH_MIN);
+			max_idx = binary_search(ia->sport, 0, ia->cnt, max_val, SEARCH_MAX);
+			break;
+		case TYPE_DPORT:
+			min_idx = binary_search(ia->dport, 0, ia->cnt, min_val, SEARCH_MIN);
+			max_idx = binary_search(ia->dport, 0, ia->cnt, max_val, SEARCH_MAX);
+			break;
+		default:
+			fprintf(stderr, "Unknown type\n");
+			return;
+	}
+
+	res[0] = min_idx;
+	res[1] = max_idx;
 }
 /*****************************************************************************/
 
