@@ -11,7 +11,7 @@
 
 /*#define ARRAY_SIZE 40000*/
 /*#define FILE_PER_INDEXER 1000*/
-#define ARRAY_SIZE 4
+#define ARRAY_SIZE 40
 #define FILE_PER_INDEXER 3
 #define FILTER_SIZE 20
 #define FILTER_SIZE_BYTES (1 << (FILTER_SIZE - 3))
@@ -331,6 +331,32 @@ void get_next_file(indexer_context_t *ictx)
 	ia->daddr = daddr;
 	ia->sport = sport;
 	ia->dport = dport;
+}
+/*****************************************************************************/
+
+
+
+
+/*****************************************************************************/
+void free_indexer(indexer_context_t *ictx)
+{
+	free(ictx->ic_index[0].saddr);
+	free(ictx->ic_index[0].daddr);
+	free(ictx->ic_index[0].sport);
+	free(ictx->ic_index[0].dport);
+
+	int i;
+	index_array_t *ia = ictx->ic_index;
+	for (i=0; i<FILE_PER_INDEXER; i++) {
+		free(ia[i].filter->saddr);
+		free(ia[i].filter->daddr);
+		free(ia[i].filter->sport);
+		free(ia[i].filter->dport);
+		free(ia[i].filter);
+	}
+
+	free(ia);
+	free(ictx);
 }
 /*****************************************************************************/
 
