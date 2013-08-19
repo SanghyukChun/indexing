@@ -8,11 +8,11 @@
 #include "index.h"
 #include "hashes.h"
 /*****************************************************************************/
-/* TODO change define values */
-/*#define ARRAY_SIZE 40000*/
+/*#define INDEX_PER_FILE 40000*/
 /*#define FILE_PER_INDEXER 1000*/
-#define ARRAY_SIZE 4
+#define INDEX_PER_FILE 4
 #define FILE_PER_INDEXER 10
+#define INDEX_ARRAY_SIZE INDEX_PER_FILE * FILE_PER_INDEXER
 #define FILTER_SIZE 20
 #define FILTER_SIZE_BYTES (1 << (FILTER_SIZE - 3))
 #define FILTER_BITMASK ((1 << FILTER_SIZE) - 1)
@@ -90,21 +90,21 @@ init_index_array(indexer_context_t *ictx)
 	if (ia == NULL)	goto iia_err1;
 	for (i = 0; i < FILE_PER_INDEXER; i++)
 		init_bloom_filter(&ia[i]);
-	ia->saddr = (array_node_t *)calloc(ARRAY_SIZE * FILE_PER_INDEXER, 
+	ia->saddr = (array_node_t *)calloc(INDEX_ARRAY_SIZE, 
 									   sizeof(array_node_t *));
 	if (ia->saddr == NULL) goto iia_err2;
-	ia->daddr = (array_node_t *)calloc(ARRAY_SIZE * FILE_PER_INDEXER, 
+	ia->daddr = (array_node_t *)calloc(INDEX_ARRAY_SIZE,
 									   sizeof(array_node_t *));
 	if (ia->daddr == NULL) goto iia_err3;
-	ia->sport = (array_node_t *)calloc(ARRAY_SIZE * FILE_PER_INDEXER, 
+	ia->sport = (array_node_t *)calloc(INDEX_ARRAY_SIZE,
 									   sizeof(array_node_t *));
 	if (ia->sport == NULL) goto iia_err4;
-	ia->dport = (array_node_t *)calloc(ARRAY_SIZE * FILE_PER_INDEXER, 
+	ia->dport = (array_node_t *)calloc(INDEX_ARRAY_SIZE,
 									   sizeof(array_node_t *));
 	if (ia->dport == NULL) goto iia_err5;
 	ia->cnt = 0;
 	ictx->ic_index = ia;
-	ictx->ic_remain_node = ARRAY_SIZE * FILE_PER_INDEXER;
+	ictx->ic_remain_node = INDEX_ARRAY_SIZE;
 	return true;
  iia_err5:
 	free(ia->sport);
@@ -332,9 +332,9 @@ get_next_file(indexer_context_t *ictx)
 	index_array_t *ia;
 	sort_array(ictx);
 
-	if (ictx->ic_remain_node < ARRAY_SIZE) {
+	if (ictx->ic_remain_node < INDEX_PER_FILE) {
 		ictx->ic_array_idx = 0;
-		ictx->ic_remain_node = ARRAY_SIZE * FILE_PER_INDEXER;
+		ictx->ic_remain_node = INDEX_ARRAY_SIZE;
 		int i;
 		for (i = 0; i < FILE_PER_INDEXER; i++) {
 			ia = &ictx->ic_index[i];
