@@ -30,9 +30,9 @@ index_main(indexer_context_t *ictx)
 	FlowInfo *info = &meta->flowinfo;
 
 	int cnt, i;
-	for (cnt = 0; cnt < 15; cnt++)
+	for (cnt = 0; cnt < 5; cnt++)
 	{
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 30000; i++) {
 			info->saddr = rand();
 			info->daddr = rand();
 			info->sport = rand();
@@ -40,7 +40,6 @@ index_main(indexer_context_t *ictx)
 
 			insert_index(ictx, meta);
 		}
-		get_next_file(ictx);
 	}
 }
 

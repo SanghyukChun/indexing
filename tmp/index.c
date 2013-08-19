@@ -9,10 +9,9 @@
 #include "hashes.h"
 /*****************************************************************************/
 /* TODO change define values */
-/*#define ARRAY_SIZE 40000*/
 /*#define FILE_PER_INDEXER 1000*/
-#define ARRAY_SIZE 4
 #define FILE_PER_INDEXER 10
+#define INDEX_ARRAY_SIZE FILE_PER_INDEXER * 30000
 #define FILTER_SIZE 20
 #define FILTER_SIZE_BYTES (1 << (FILTER_SIZE - 3))
 #define FILTER_BITMASK ((1 << FILTER_SIZE) - 1)
@@ -51,21 +50,28 @@ get_hashes(unsigned int hash[], unsigned char *data)
 }
 /*****************************************************************************/
 static inline void
-init_bloom_filter(index_array_t *ia)
+init_bloom_filter(indexer_context_t *ictx)
 {
-	bloom_filter_t *bf;
+	bloom_filter_t *filters;
 
-	if ((bf = (bloom_filter_t *)malloc(sizeof(bloom_filter_t))) == NULL)
+	if ((filters = (bloom_filter_t *)calloc(FILE_PER_INDEXER,
+					sizeof(bloom_filter_t))) == NULL)
 		goto ibf_err1;
-	if ((bf->saddr = calloc(FILTER_SIZE_BYTES, sizeof(u_char))) == NULL)
-		goto ibf_err2;
-	if ((bf->daddr = calloc(FILTER_SIZE_BYTES, sizeof(u_char))) == NULL)
-		goto ibf_err3;
-	if ((bf->sport = calloc(FILTER_SIZE_BYTES, sizeof(u_char))) == NULL)
-		goto ibf_err4;
-	if ((bf->dport = calloc(FILTER_SIZE_BYTES, sizeof(u_char))) == NULL)
-		goto ibf_err5;
-	ia->filter = bf;
+
+	bloom_filter_t *bf;
+	int i;
+	for(i = 0; i < FILE_PER_INDEXER; i++) {
+		bf = &filters[i];
+		if ((bf->saddr = calloc(FILTER_SIZE_BYTES, sizeof(u_char))) == NULL)
+			goto ibf_err2;
+		if ((bf->daddr = calloc(FILTER_SIZE_BYTES, sizeof(u_char))) == NULL)
+			goto ibf_err3;
+		if ((bf->sport = calloc(FILTER_SIZE_BYTES, sizeof(u_char))) == NULL)
+			goto ibf_err4;
+		if ((bf->dport = calloc(FILTER_SIZE_BYTES, sizeof(u_char))) == NULL)
+			goto ibf_err5;
+	}
+	ictx->ic_bloom_filter = filters;
 	return;
  ibf_err5:
 	free(bf->sport);
@@ -84,36 +90,35 @@ inline bool
 init_index_array(indexer_context_t *ictx)
 {
 	int i;
-	index_array_t *ia;
+	index_info_t *info;
 
-	ia = (index_array_t *)calloc(FILE_PER_INDEXER, sizeof(index_array_t));
-	if (ia == NULL)	goto iia_err1;
-	for (i = 0; i < FILE_PER_INDEXER; i++)
-		init_bloom_filter(&ia[i]);
-	ia->saddr = (array_node_t *)calloc(ARRAY_SIZE * FILE_PER_INDEXER, 
+	info = (index_info_t *)calloc(FILE_PER_INDEXER, sizeof(index_info_t));
+	if (info == NULL)	goto iia_err1;
+
+	init_bloom_filter(ictx);
+
+	ictx->ic_saddr_array = (array_node_t *)calloc(INDEX_ARRAY_SIZE, 
 									   sizeof(array_node_t *));
-	if (ia->saddr == NULL) goto iia_err2;
-	ia->daddr = (array_node_t *)calloc(ARRAY_SIZE * FILE_PER_INDEXER, 
+	if (ictx->ic_saddr_array == NULL) goto iia_err2;
+	ictx->ic_daddr_array = (array_node_t *)calloc(INDEX_ARRAY_SIZE, 
 									   sizeof(array_node_t *));
-	if (ia->daddr == NULL) goto iia_err3;
-	ia->sport = (array_node_t *)calloc(ARRAY_SIZE * FILE_PER_INDEXER, 
+	if (ictx->ic_daddr_array == NULL) goto iia_err3;
+	ictx->ic_sport_array = (array_node_t *)calloc(INDEX_ARRAY_SIZE, 
 									   sizeof(array_node_t *));
-	if (ia->sport == NULL) goto iia_err4;
-	ia->dport = (array_node_t *)calloc(ARRAY_SIZE * FILE_PER_INDEXER, 
+	if (ictx->ic_sport_array == NULL) goto iia_err4;
+	ictx->ic_dport_array = (array_node_t *)calloc(INDEX_ARRAY_SIZE, 
 									   sizeof(array_node_t *));
-	if (ia->dport == NULL) goto iia_err5;
-	ia->cnt = 0;
-	ictx->ic_index = ia;
-	ictx->ic_remain_node = ARRAY_SIZE * FILE_PER_INDEXER;
+	if (ictx->ic_dport_array == NULL) goto iia_err5;
+	ictx->ic_cnt = 0;
 	return true;
  iia_err5:
-	free(ia->sport);
+	free(ictx->ic_saddr_array);
  iia_err4:
-	free(ia->daddr);
+	free(ictx->ic_daddr_array);
  iia_err3:
-	free(ia->saddr);
+	free(ictx->ic_sport_array);
  iia_err2:
-	free(ia);
+	free(info);
  iia_err1:
 	perror("malloc");
 	return false;
@@ -157,7 +162,6 @@ insert_index(indexer_context_t *ictx, FlowMeta *meta)
 	insert_into_index_array(ia, ia->sport, meta->flowinfo.sport, meta);
 	insert_into_index_array(ia, ia->dport, meta->flowinfo.dport, meta);
 	ia->cnt++;
-	ictx->ic_remain_node--;
 
 	/* insert index into bloom filter */
 	insert_into_bloom_filter(bf->saddr, meta->flowinfo.saddr);
@@ -341,34 +345,28 @@ search_index(indexer_context_t *ictx, int type,
 }
 /*****************************************************************************/
 // TODO rename function
-inline void
+static inline void
 get_next_file(indexer_context_t *ictx)
 {
 	index_array_t *ia;
+	array_node_t  *saddr;
+	array_node_t  *daddr;
+	array_node_t  *sport;
+	array_node_t  *dport;
+
+	//TODO assign fileID to bf, ia
 	sort_array(ictx);
-
-	if (ictx->ic_remain_node < ARRAY_SIZE) {
-		ictx->ic_array_idx = 0;
-		ictx->ic_remain_node = ARRAY_SIZE * FILE_PER_INDEXER;
-		int i;
-		for (i = 0; i < FILE_PER_INDEXER; i++) {
-			ia = &ictx->ic_index[i];
-			ia->cnt = 0;
-		}
-	} else {
-		ia = &ictx->ic_index[ictx->ic_array_idx];
-		array_node_t *old_saddr = &ia->saddr[ia->cnt];
-		array_node_t *old_daddr = &ia->daddr[ia->cnt];
-		array_node_t *old_sport = &ia->sport[ia->cnt];
-		array_node_t *old_dport = &ia->dport[ia->cnt];
-		ictx->ic_array_idx += 1;
-
-		ia = &ictx->ic_index[ictx->ic_array_idx];
-		ia->cnt   = 0;
-		ia->saddr = old_saddr;
-		ia->daddr = old_daddr;
-		ia->sport = old_sport;
-		ia->dport = old_dport;
-	}
+	ia = &ictx->ic_index[ictx->ic_array_idx];
+	saddr = &ia->saddr[ia->cnt];
+	daddr = &ia->daddr[ia->cnt];
+	sport = &ia->sport[ia->cnt];
+	dport = &ia->dport[ia->cnt];
+	ictx->ic_array_idx += 1;
+	ia = &ictx->ic_index[ictx->ic_array_idx];
+	ia->cnt   = 0;
+	ia->saddr = saddr;
+	ia->daddr = daddr;
+	ia->sport = sport;
+	ia->dport = dport;
 }
 /*****************************************************************************/

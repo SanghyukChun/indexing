@@ -55,9 +55,16 @@ typedef struct indexer_context {
 	int ic_cpu;
 	struct engine_context *ic_ectx;
 	int ic_sockd;
-	struct index_array *ic_index;
-	int ic_remain_node; /* # of ramaining nodes */
-	int ic_array_idx;   /* index of current index_array */
+
+	struct array_node_t *ic_saddr_array;
+	struct array_node_t *ic_daddr_array;
+	struct array_node_t *ic_sport_array;
+	struct array_node_t *ic_dport_array;
+	struct array_node_t *ic_saddr_array;
+	bloom_filter_t *ic_bloom_filter;
+	index_info_t *ic_index_info;
+	int ic_cnt;
+
 	bool ic_done;
 	FlowMeta *ic_meta;
 } indexer_context_t;

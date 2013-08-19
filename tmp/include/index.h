@@ -15,23 +15,19 @@ typedef struct bloom_filter {
 	u_char *daddr;
 	u_char *sport;
 	u_char *dport;
-	uint16_t fileID;
 } bloom_filter_t;
 /*****************************************************************************/
 typedef struct array_node {
-	uint16_t fileID;
 	uint32_t offset;
 	uint32_t value;
 } array_node_t;
 /*****************************************************************************/
-typedef struct index_array {
-	array_node_t *saddr;
-	array_node_t *daddr;
-	array_node_t *sport;
-	array_node_t *dport;
-	bloom_filter_t *filter;
-	uint32_t cnt; /* # of current nodes in the array */
-} index_array_t;
+typedef struct index_info {
+	uint16_t fileID;    /* fileID of given index                 */
+	int      first_idx; /* index of start point of given index   */
+	int      last_idx;  /* index of last point of given index    */
+	bool     is_backup; /* true if index is backup, false if not */
+} index_info_t;
 /*****************************************************************************/
 enum {
 	TYPE_SADDR = 1,
@@ -49,5 +45,5 @@ enum {
 inline bool init_index_array(indexer_context_t *ictx);
 inline void insert_index(indexer_context_t *ictx, FlowMeta *meta);
 inline void sort_array(indexer_context_t *ictx);
-inline void get_next_file(indexer_context_t *ictx);
+
 #endif /* __INDEX_H__ */
