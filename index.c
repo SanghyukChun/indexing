@@ -88,19 +88,21 @@ init_index_array(indexer_context_t *ictx)
 
 	ia = (index_array_t *)calloc(FILE_PER_INDEXER, sizeof(index_array_t));
 	if (ia == NULL)	goto iia_err1;
+
 	for (i = 0; i < FILE_PER_INDEXER; i++)
 		init_bloom_filter(&ia[i]);
-	ia->saddr = (array_node_t *)calloc(INDEX_ARRAY_SIZE, 
-									   sizeof(array_node_t *));
+
+	ia->saddr = 
+		(array_node_t *)calloc(INDEX_ARRAY_SIZE, sizeof(array_node_t *));
 	if (ia->saddr == NULL) goto iia_err2;
-	ia->daddr = (array_node_t *)calloc(INDEX_ARRAY_SIZE,
-									   sizeof(array_node_t *));
+	ia->daddr =
+		(array_node_t *)calloc(INDEX_ARRAY_SIZE, sizeof(array_node_t *));
 	if (ia->daddr == NULL) goto iia_err3;
-	ia->sport = (array_node_t *)calloc(INDEX_ARRAY_SIZE,
-									   sizeof(array_node_t *));
+	ia->sport = 
+		(array_node_t *)calloc(INDEX_ARRAY_SIZE, sizeof(array_node_t *));
 	if (ia->sport == NULL) goto iia_err4;
-	ia->dport = (array_node_t *)calloc(INDEX_ARRAY_SIZE,
-									   sizeof(array_node_t *));
+	ia->dport =
+		(array_node_t *)calloc(INDEX_ARRAY_SIZE, sizeof(array_node_t *));
 	if (ia->dport == NULL) goto iia_err5;
 	ia->cnt = 0;
 	ictx->ic_index = ia;
