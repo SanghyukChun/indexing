@@ -5,18 +5,24 @@
 #include <time.h>
 
 #include "index.h"
+#include "flow_manager.h"
 
 /**
  * main for index array index structure
  * @param ctx [description]
  */
 static void
-index_main(index_context_t *ictx)
+index_main(indexer_context_t *ictx)
 {
-	memset(ictx, 0, sizeof(index_context_t));
-	bloom_filter_context_t bfctx;
-	index_array_context_t  iactx;
-	init_index_context(ictx, &bfctx, &iactx);
+	memset(ictx, 0, sizeof(indexer_context_t));
+	ictx->ic_cpu = 0;
+	ictx->ic_sockd = 0;
+	if (!init_index_array(ictx))
+		return;
+	ictx->ic_meta = (FlowMeta *)calloc(META_ARRAY_SIZE, sizeof(FlowMeta));
+	if (ictx->ic_meta == NULL) {
+		return;
+	}
 
 	srand(time(NULL));
 
@@ -32,44 +38,15 @@ index_main(index_context_t *ictx)
 			info->sport = rand();
 			info->dport = rand();
 
-			
-			if ((insert_index(ictx->ic_index_array, meta)) < 0)
-				perror("insert error");
+			insert_index(ictx, meta);
 		}
-		close_file_event(ictx);
-		/*print_index_array(ctx, TYPE_SADDR);*/
-		/*int *search_result = search_from_index_array(ctx, TYPE_SADDR, value);*/
-		/*
-		int *search_result = search_range_from_index_array(ctx, TYPE_SADDR, 10000000, 1000000000);
-		if (search_result != NULL)
-			printf("s: %d e: %d\n", search_result[0], search_result[1]);
-		*/
 	}
-
-	//write_index_array(ctx);
 }
 
-/**
- * exit for index array index structure
- * @param ctx [description]
- */
-static void
-index_exit(index_context_t *ictx)
-{
-	//free_index_array(ctx);	
-}
-
-/**
- * main function
- * @param  argc [description]
- * @param  argv [description]
- * @return      [description]
- */
 int
 main(int argc, char *argv[])
 {
-	index_context_t ictx;
+	indexer_context_t ictx;
 	index_main(&ictx);
-	index_exit(&ictx);
 	return 0;
 }
