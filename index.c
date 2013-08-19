@@ -188,23 +188,19 @@ search_from_bloom_filter(bloom_filter_t *filter, int type, unsigned int data)
 {
 	int res = -1;
 
-	switch(type) {
-		case TYPE_SADDR:
-			res = search_filter(filter->saddr, data);
-			break;
-		case TYPE_DADDR:
-			res = search_filter(filter->daddr, data);
-			break;
-		case TYPE_SPORT:
-			res = search_filter(filter->sport, data);
-			break;
-		case TYPE_DPORT:
-			res = search_filter(filter->dport, data);
-			break;
-		default:
-			fprintf(stderr, "Unknown type\n");
-			return -1;
+	if (type == TYPE_SADDR)
+		res = search_filter(filter->saddr, data);
+	else if (type == TYPE_DADDR)
+		res = search_filter(filter->daddr, data);
+	else if (type == TYPE_SPORT)
+		res = search_filter(filter->sport, data);
+	else if (type == TYPE_DPORT)
+		res = search_filter(filter->dport, data);
+	else {
+		fprintf(stderr, "Unknown type\n");
+		return -1;
 	}
+
 	return (res? -1 : 0);
 }
 /*****************************************************************************/
@@ -216,16 +212,15 @@ binary_search(array_node_t *head, int start, int end,
 	unsigned int mid_val;
 
 	if (start > end) {
-		switch(type) {
-			case SEARCH_EXACT:
-				return -1;
-			case SEARCH_MIN:
-				return start;
-			case SEARCH_MAX:
-				return end;
-			default:
-				fprintf(stderr, "Unknown type\n");
-				return -1;
+		if (type == SEARCH_EXACT)
+			return -1;
+		else if (type == SEARCH_MIN)
+			return start;
+		else if (type == SEARCH_MAX)
+			return end;
+		else {
+			fprintf(stderr, "Unknown type\n");
+			return -1;
 		}
 	}
 	mid = (start + end) / 2;
@@ -264,38 +259,33 @@ search_single_index(indexer_context_t *ictx, int type,
 	int idx;
 	index_array_t *ia = &ictx->ic_index[ictx->ic_array_idx];
 
-	switch(type) {
-		case TYPE_SADDR:
-			if (search_from_bloom_filter(ia->filter, TYPE_SADDR, val)) {
-				idx = binary_search(ia->saddr, 0, ia->cnt, val, SEARCH_EXACT);
-				res[0] = search_backward(ia->saddr, idx, val);
-				res[1] = search_forward(ia->saddr, idx, val, ia->cnt);
-			}
-			break;
-		case TYPE_DADDR:
-			if (search_from_bloom_filter(ia->filter, TYPE_DADDR, val)) {
-				idx = binary_search(ia->daddr, 0, ia->cnt, val, SEARCH_EXACT);
-				res[0] = search_backward(ia->daddr, idx, val);
-				res[1] = search_forward(ia->daddr, idx, val, ia->cnt);
-			}
-			break;
-		case TYPE_SPORT:
-			if (search_from_bloom_filter(ia->filter, TYPE_SPORT, val)) {
-				idx = binary_search(ia->sport, 0, ia->cnt, val, SEARCH_EXACT);
-				res[0] = search_backward(ia->sport, idx, val);
-				res[1] = search_forward(ia->sport, idx, val, ia->cnt);
-			}
-			break;
-		case TYPE_DPORT:
-			if (search_from_bloom_filter(ia->filter, TYPE_DPORT, val)) {
-				idx = binary_search(ia->dport, 0, ia->cnt, val, SEARCH_EXACT);
-				res[0] = search_backward(ia->dport, idx, val);
-				res[1] = search_forward (ia->dport, idx, val, ia->cnt);
-			}
-			break;
-		default:
-			fprintf(stderr, "Unknown type\n");
-			return;
+	if (type == TYPE_SADDR) {
+		if (search_from_bloom_filter(ia->filter, TYPE_SADDR, val)) {
+			idx = binary_search(ia->saddr, 0, ia->cnt, val, SEARCH_EXACT);
+			res[0] = search_backward(ia->saddr, idx, val);
+			res[1] = search_forward(ia->saddr, idx, val, ia->cnt);
+		}
+	} else if (type == TYPE_DADDR) {
+		if (search_from_bloom_filter(ia->filter, TYPE_DADDR, val)) {
+			idx = binary_search(ia->daddr, 0, ia->cnt, val, SEARCH_EXACT);
+			res[0] = search_backward(ia->daddr, idx, val);
+			res[1] = search_forward(ia->daddr, idx, val, ia->cnt);
+		}
+	} else if (type == TYPE_SPORT) {
+		if (search_from_bloom_filter(ia->filter, TYPE_SPORT, val)) {
+			idx = binary_search(ia->sport, 0, ia->cnt, val, SEARCH_EXACT);
+			res[0] = search_backward(ia->sport, idx, val);
+			res[1] = search_forward(ia->sport, idx, val, ia->cnt);
+		}
+	} else if (type == TYPE_DPORT) {
+		if (search_from_bloom_filter(ia->filter, TYPE_DPORT, val)) {
+			idx = binary_search(ia->dport, 0, ia->cnt, val, SEARCH_EXACT);
+			res[0] = search_backward(ia->dport, idx, val);
+			res[1] = search_forward (ia->dport, idx, val, ia->cnt);
+		}
+	} else {
+		fprintf(stderr, "Unknown type\n");
+		return;
 	}
 }
 /*****************************************************************************/
@@ -317,26 +307,21 @@ search_index(indexer_context_t *ictx, int type,
 		return search_single_index(ictx, type, min_val, res);
 
 	ia = &ictx->ic_index[ictx->ic_array_idx];
-	switch(type) {
-		case TYPE_SADDR:
-			res[0] = binary_search(ia->saddr, 0, ia->cnt, min_val, SEARCH_MIN);
-			res[1] = binary_search(ia->saddr, 0, ia->cnt, max_val, SEARCH_MAX);
-			break;
-		case TYPE_DADDR:
-			res[0] = binary_search(ia->daddr, 0, ia->cnt, min_val, SEARCH_MIN);
-			res[1] = binary_search(ia->daddr, 0, ia->cnt, max_val, SEARCH_MAX);
-			break;
-		case TYPE_SPORT:
-			res[0] = binary_search(ia->sport, 0, ia->cnt, min_val, SEARCH_MIN);
-			res[1] = binary_search(ia->sport, 0, ia->cnt, max_val, SEARCH_MAX);
-			break;
-		case TYPE_DPORT:
-			res[0] = binary_search(ia->dport, 0, ia->cnt, min_val, SEARCH_MIN);
-			res[1] = binary_search(ia->dport, 0, ia->cnt, max_val, SEARCH_MAX);
-			break;
-		default:
-			fprintf(stderr, "Unknown type\n");
-			return;
+	if (type == TYPE_SADDR) {
+		res[0] = binary_search(ia->saddr, 0, ia->cnt, min_val, SEARCH_MIN);
+		res[1] = binary_search(ia->saddr, 0, ia->cnt, max_val, SEARCH_MAX);
+	} else if (type == TYPE_DADDR) {
+		res[0] = binary_search(ia->daddr, 0, ia->cnt, min_val, SEARCH_MIN);
+		res[1] = binary_search(ia->daddr, 0, ia->cnt, max_val, SEARCH_MAX);
+	} else if (type == TYPE_SPORT) {
+		res[0] = binary_search(ia->sport, 0, ia->cnt, min_val, SEARCH_MIN);
+		res[1] = binary_search(ia->sport, 0, ia->cnt, max_val, SEARCH_MAX);
+	} else if (type == TYPE_DPORT) {
+		res[0] = binary_search(ia->dport, 0, ia->cnt, min_val, SEARCH_MIN);
+		res[1] = binary_search(ia->dport, 0, ia->cnt, max_val, SEARCH_MAX);
+	} else {
+		fprintf(stderr, "Unknown type\n");
+		return;
 	}
 }
 /*****************************************************************************/
