@@ -48,6 +48,8 @@ enum {
 /*****************************************************************************/
 inline bool init_index_array(indexer_context_t *ictx);
 inline void insert_index(indexer_context_t *ictx, FlowMeta *meta);
-inline void sort_array(indexer_context_t *ictx);
-inline void get_next_file(indexer_context_t *ictx);
+inline void sort_fcap_index_array(indexer_context_t *ictx);
+inline void clean_fcap_index(indexer_context_t *ictx);
+inline bool has_enough_index_node(indexer_context_t *ictx);
+inline void set_next_fcap_index(indexer_context_t *ictx);
 #endif /* __INDEX_H__ */

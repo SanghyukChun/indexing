@@ -19,7 +19,7 @@
 #define NUM_HASHES 7
 /*****************************************************************************/
 inline void
-sort_array(indexer_context_t *ictx)
+sort_fcap_index_array(indexer_context_t *ictx)
 {
 	index_array_t *ia = &ictx->ic_index[ictx->ic_array_idx];
 
@@ -327,35 +327,49 @@ search_index(indexer_context_t *ictx, int type,
 	}
 }
 /*****************************************************************************/
-// TODO rename function
+inline bool
+has_enough_index_node(indexer_context_t *ictx)
+{
+	return ictx->ic_remain_node > INDEX_PER_FILE;
+}
+/*****************************************************************************/
 inline void
-get_next_file(indexer_context_t *ictx)
+clean_fcap_index(indexer_context_t *ictx)
 {
 	index_array_t *ia;
-	sort_array(ictx);
-
-	if (ictx->ic_remain_node < INDEX_PER_FILE) {
-		ictx->ic_array_idx = 0;
-		ictx->ic_remain_node = INDEX_ARRAY_SIZE;
-		int i;
-		for (i = 0; i < FILE_PER_INDEXER; i++) {
-			ia = &ictx->ic_index[i];
-			ia->cnt = 0;
-		}
-	} else {
-		ia = &ictx->ic_index[ictx->ic_array_idx];
-		array_node_t *old_saddr = &ia->saddr[ia->cnt];
-		array_node_t *old_daddr = &ia->daddr[ia->cnt];
-		array_node_t *old_sport = &ia->sport[ia->cnt];
-		array_node_t *old_dport = &ia->dport[ia->cnt];
-		ictx->ic_array_idx += 1;
-
-		ia = &ictx->ic_index[ictx->ic_array_idx];
-		ia->cnt   = 0;
-		ia->saddr = old_saddr;
-		ia->daddr = old_daddr;
-		ia->sport = old_sport;
-		ia->dport = old_dport;
+	ictx->ic_array_idx = 0;
+	ictx->ic_remain_node = INDEX_ARRAY_SIZE;
+	int i;
+	for (i = 0; i < FILE_PER_INDEXER; i++) {
+		ia = &ictx->ic_index[i];
+		ia->cnt = 0;
 	}
 }
 /*****************************************************************************/
+inline void
+set_next_fcap_index(indexer_context_t *ictx)
+{
+	index_array_t *ia;
+
+	ia = &ictx->ic_index[ictx->ic_array_idx];
+	array_node_t *old_saddr = &ia->saddr[ia->cnt];
+	array_node_t *old_daddr = &ia->daddr[ia->cnt];
+	array_node_t *old_sport = &ia->sport[ia->cnt];
+	array_node_t *old_dport = &ia->dport[ia->cnt];
+	ictx->ic_array_idx += 1;
+
+	ia = &ictx->ic_index[ictx->ic_array_idx];
+	ia->cnt   = 0;
+	ia->saddr = old_saddr;
+	ia->daddr = old_daddr;
+	ia->sport = old_sport;
+	ia->dport = old_dport;
+}
+/*****************************************************************************/
+
+/*
+if (has_enough_index_node(ictx))
+	set_next_fcap_index(ictx);
+else
+	clean_fcap_index(ictx);
+*/

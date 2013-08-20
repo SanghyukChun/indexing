@@ -7,10 +7,6 @@
 #include "index.h"
 #include "flow_manager.h"
 
-/**
- * main for index array index structure
- * @param ctx [description]
- */
 static void
 index_main(indexer_context_t *ictx)
 {
@@ -30,7 +26,7 @@ index_main(indexer_context_t *ictx)
 	FlowInfo *info = &meta->flowinfo;
 
 	int cnt, i;
-	for (cnt = 0; cnt < 15; cnt++)
+	for (cnt = 0; cnt < 150; cnt++)
 	{
 		for (i = 0; i < 4; i++) {
 			info->saddr = rand();
@@ -40,7 +36,10 @@ index_main(indexer_context_t *ictx)
 
 			insert_index(ictx, meta);
 		}
-		get_next_file(ictx);
+		if (has_enough_index_node(ictx))
+			set_next_fcap_index(ictx);
+		else
+			clean_fcap_index(ictx);
 	}
 }
 
